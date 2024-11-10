@@ -12,8 +12,9 @@ public class Game {
     private String tokenForWhitePlayer;
     @Column(name = "token_for_black_player")
     private String tokenForBlackPlayer;
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "infoId", referencedColumnName = "infoId")
+    @OneToOne
+    @JoinColumn(name = "id")
+    @MapsId
     private GameInfo infoId;
     private String board;
 }

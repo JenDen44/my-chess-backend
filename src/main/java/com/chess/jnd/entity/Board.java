@@ -5,7 +5,7 @@ import com.chess.jnd.entity.figures.ShortFigureName;
 
 public class Board {
     private FigureFactory figureFactory;
-    private Cell[][] cells;
+    private Cell[][] cells = new Cell[8][8];
 
     Board(ShortFigureName[][] shortNames) {
         this.figureFactory = new FigureFactory();
@@ -39,6 +39,8 @@ public class Board {
 
     private Cell getCell(int x, int y) {
         if (x < 0 || x > 8 || y < 0 || y > 8) throw new RuntimeException("Не доступные координаты x =" + x + " and " + " y=" + y);
+
+        if (this.cells[y][x] == null) throw new RuntimeException("Доска не иницилезирована");
 
         return this.cells[y][x];
     }
