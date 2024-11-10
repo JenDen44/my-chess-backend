@@ -9,5 +9,4 @@ class ChessJndApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
