@@ -56,8 +56,7 @@ public class GameService {
     }
 
     public Game updateGame(Game game, Integer id) {
-        var gameFromDb = gameRepository.findById(id)
-                .orElseThrow (() -> new RuntimeException("Game with id " + id + " is not found in DB"));
+        var gameFromDb = findGameById(id);
 
         gameFromDb.setInfoId(game.getInfoId());
         gameFromDb.setBoard(game.getBoard());
@@ -70,9 +69,7 @@ public class GameService {
     }
 
     public void deleteGame(Integer id) {
-        gameRepository.findById(id)
-                .orElseThrow (() -> new RuntimeException("Game with id " + id + " is not found in DB"));
-
+        findGameById(id);
         gameRepository.deleteById(id);
     }
 

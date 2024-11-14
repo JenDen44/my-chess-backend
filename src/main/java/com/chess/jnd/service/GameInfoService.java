@@ -28,9 +28,7 @@ public class GameInfoService {
     }
 
     public GameInfo updateGameInfo(GameInfo gameInfo, Integer id) {
-
-        var gameInfoFromDb = gameInfoRepository.findById(id)
-                .orElseThrow (() -> new RuntimeException("GameInfo with id " + id + " is not found in DB"));
+        var gameInfoFromDb = findGameInfoById(id);
 
         gameInfoFromDb.setDetail(gameInfo.getDetail());
         gameInfoFromDb.setStatus(gameInfo.getStatus());
@@ -40,9 +38,7 @@ public class GameInfoService {
     }
 
     public void deleteGameInfo(Integer id) {
-        gameInfoRepository.findById(id)
-                .orElseThrow (() -> new RuntimeException("GameInfo with id " + id + " is not found in DB"));
-
+       findGameInfoById(id);
         gameInfoRepository.deleteById(id);
     }
 }
