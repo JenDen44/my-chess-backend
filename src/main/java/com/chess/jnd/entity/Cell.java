@@ -6,8 +6,11 @@ import lombok.Data;
 @Data
 public class Cell {
     private int x;
+
     private int y;
+
     private Color color;
+
     private Figure figure;
 
     public Cell(int x, int y, Color color) {
