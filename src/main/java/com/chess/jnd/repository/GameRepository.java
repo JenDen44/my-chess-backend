@@ -12,8 +12,8 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
 
     @Query(
           value = """
-          select g from Game\s
-          where g.token_for_black_player = :token or g.token_for_white_player = :token\s
+          select g from Game g\s
+          where g.tokenForBlackPlayer = :token or g.tokenForWhitePlayer = :token\s
         """
     )
     Game getGameByToken(UUID token);

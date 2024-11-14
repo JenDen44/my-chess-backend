@@ -32,7 +32,7 @@ public class GameService {
         String board  = mapper.writeValueAsString(shortFigureNames);
         Game game = new Game(board);
         gameInfoService.saveGameInfo(game.getInfoId());
-        Game savedGameToDB = gameRepository.save(game);
+        Game savedGameToDB = saveGame(game);
 
         return GameResponse.builder()
                 .info(savedGameToDB.getInfoId())
@@ -51,11 +51,11 @@ public class GameService {
         return game;
     }
 
-    public Game saveGameInfo(Game game) {
+    public Game saveGame(Game game) {
         return gameRepository.save(game);
     }
 
-    public Game updateGameInfo(Game game, Integer id) {
+    public Game updateGame(Game game, Integer id) {
         var gameFromDb = gameRepository.findById(id)
                 .orElseThrow (() -> new RuntimeException("Game with id " + id + " is not found in DB"));
 
@@ -64,7 +64,7 @@ public class GameService {
         gameFromDb.setActive(game.getActive());
         gameFromDb.setTokenForWhitePlayer(game.getTokenForWhitePlayer());
         gameFromDb.setTokenForBlackPlayer(game.getTokenForBlackPlayer());
-        gameRepository.save(gameFromDb);
+        saveGame(gameFromDb);
 
         return gameFromDb;
     }
@@ -92,8 +92,7 @@ public class GameService {
 
     public GameResponse getCurrentGame(UUID token) throws JsonProcessingException {
         Game game = gameRepository.getGameByToken(token);
-        if (game.getTokenForBlackPlayer().compareTo(token) == 0) game.setActive(Color.BLACK);
-        else game.setActive(Color.WHITE);
+        Color currentColor = game.getTokenForBlackPlayer().equals(token) ? Color.BLACK : Color.WHITE;
 
         return GameResponse.builder()
                 .info(game.getInfoId())
@@ -101,7 +100,7 @@ public class GameService {
                 .tokenForWhitePlayer(game.getTokenForWhitePlayer())
                 .board(mapper.readValue(game.getBoard(), ShortFigureName[][].class))
                 .active(game.getActive())
-                .currentColor(game.getActive())
+                .currentColor(currentColor)
                 .build();
     }
 }
