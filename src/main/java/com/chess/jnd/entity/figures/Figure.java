@@ -7,7 +7,9 @@ import lombok.Data;
 @Data
 public class Figure {
     private FigureName name;
+
     private Color color;
+
     private Cell cell;
 
     public Figure(FigureName name, Color color, Cell cell) {
@@ -49,6 +51,22 @@ public class Figure {
                 return ShortFigureName.BLACK_ROOK;
             default:
                 return ShortFigureName.BLACK_PAWN;
+        }
+    }
+
+    public boolean canMove(Cell cell) {
+        Figure figure = cell.getFigure();
+
+        if (figure == null) return true;
+
+        return figure.getColor() != this.color && figure.getName() != FigureName.KING;
+    }
+
+    public void move(Cell cell) {
+        if (this.canMove(cell)) {
+            this.cell.setFigure(null);
+            this.cell = cell;
+            this.cell.setFigure(this);
         }
     }
 }

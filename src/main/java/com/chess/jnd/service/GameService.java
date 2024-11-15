@@ -100,4 +100,19 @@ public class GameService {
                 .currentColor(currentColor)
                 .build();
     }
+
+    public void move(MoveRequest moveRequest) {
+        //fromX FromY -> board.getCell
+        //ToY ToX -> board.getCell
+        // get Figure fromCell ( only from) if null or color is not Active throw error
+        //figure.canMove -> false (throw error)
+        //figure.move
+        // save new board version and change active color to oposite
+        //calculate gameInfo (return Game Info Object in response)
+        //socket for second player from and to coordinates and new active color and current game info
+    }
+
+    public void giveUp(UUID token) {
+
+    }
 }
