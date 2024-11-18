@@ -27,7 +27,7 @@ public class Cell {
     }
 
     public boolean isEmpty() {
-        return this.getFigure() != null;
+        return this.getFigure() == null;
     }
 
 

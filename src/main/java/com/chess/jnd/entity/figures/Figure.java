@@ -55,11 +55,13 @@ public class Figure {
     }
 
     public boolean canMove(Cell cell) {
+        if (this.getCell().compare(cell)) return false;
+
         Figure figure = cell.getFigure();
 
         if (figure == null) return true;
 
-        return figure.getColor() != this.color && figure.getName() != FigureName.KING;
+        return figure.getColor() != this.getColor() && figure.getName() != FigureName.KING;
     }
 
     public void move(Cell cell) {
