@@ -19,7 +19,7 @@ public class Board {
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 Color color = (x + y) % 2 == 1 ? Color.BLACK : Color.WHITE;
-                Cell cell = new Cell(x, y, color);
+                Cell cell = new Cell(x, y, color, this);
                 cells[y][x] = cell;
             }
         }
@@ -37,7 +37,7 @@ public class Board {
         }
     }
 
-    private Cell getCell(int x, int y) {
+    public Cell getCell(int x, int y) {
         if (x < 0 || x > 8 || y < 0 || y > 8) throw new RuntimeException("Не доступные координаты x =" + x + " and " + " y=" + y);
 
         if (this.cells[y][x] == null) throw new RuntimeException("Доска не иницилезирована");

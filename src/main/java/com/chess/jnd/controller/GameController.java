@@ -2,6 +2,7 @@ package com.chess.jnd.controller;
 
 import com.chess.jnd.entity.CreateGameRequest;
 import com.chess.jnd.entity.GameResponse;
+import com.chess.jnd.entity.MoveRequest;
 import com.chess.jnd.service.GameInfoService;
 import com.chess.jnd.service.GameService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,5 +36,18 @@ public class GameController {
     @GetMapping("/{token}")
     public ResponseEntity<GameResponse> currentGame(@RequestParam UUID token) throws JsonProcessingException {
         return ResponseEntity.ok(gameService.getCurrentGame(token));
+    }
+
+    @PostMapping("/{token}/move")
+    public ResponseEntity<GameResponse> move(@RequestParam UUID token,
+                                             @RequestBody MoveRequest moveRequest) {
+        gameService.move(moveRequest);
+        return new ResponseEntity<>(null);
+    }
+
+    @PostMapping("/{token}/give-up")
+    public ResponseEntity<GameResponse> giveUp(@RequestParam UUID token) {
+        gameService.giveUp(token);
+        return new ResponseEntity<>(null);
     }
 }

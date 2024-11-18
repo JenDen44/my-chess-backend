@@ -1,8 +1,7 @@
 package com.chess.jnd.entity.figures;
 
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@Getter
 public enum ShortFigureName {
     WHITE_KING('K') ,
     WHITE_QUEEN('Q'),
@@ -21,5 +20,10 @@ public enum ShortFigureName {
 
     ShortFigureName(Character shortName) {
         this.shortName = shortName;
+    }
+    
+    @JsonValue
+    public Character getShortName() {
+        return shortName;
     }
 }

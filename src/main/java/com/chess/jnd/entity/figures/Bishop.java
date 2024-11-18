@@ -4,7 +4,16 @@ import com.chess.jnd.entity.Cell;
 import com.chess.jnd.entity.Color;
 
 public class Bishop extends Figure {
+
     public Bishop(Color color, Cell cell) {
         super(FigureName.BISHOP, color, cell);
+    }
+
+    public boolean canMove(Cell cell) {
+        if (!super.canMove(cell)) {
+            return false;
+        }
+
+        return this.getCell().checkDiagonal(cell);
     }
 }
