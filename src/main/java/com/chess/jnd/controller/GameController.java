@@ -8,15 +8,11 @@ import com.chess.jnd.service.GameService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Controller
+@RestController
 public class GameController {
 
     private final GameService gameService;
@@ -34,12 +30,12 @@ public class GameController {
     }
 
     @GetMapping("/{token}")
-    public ResponseEntity<GameResponse> currentGame(@RequestParam UUID token) throws JsonProcessingException {
-        return ResponseEntity.ok(gameService.getCurrentGame(token));
+    public ResponseEntity<GameResponse> currentGame(@PathVariable String token) throws JsonProcessingException {
+        return ResponseEntity.ok(gameService.getCurrentGame(UUID.fromString(token)));
     }
 
     @PostMapping("/{token}/move")
-    public ResponseEntity<GameResponse> move(@RequestParam UUID token,
+    public ResponseEntity<GameResponse> move(@PathVariable UUID token,
                                              @RequestBody MoveRequest moveRequest) {
         gameService.move(moveRequest);
         return new ResponseEntity<>(null);
