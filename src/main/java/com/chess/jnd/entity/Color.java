@@ -1,8 +1,8 @@
 package com.chess.jnd.entity;
 
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@Getter
+
 public enum Color {
     WHITE("white"),
     BLACK("black");
@@ -11,5 +11,10 @@ public enum Color {
 
     Color(String color) {
         this.color = color;
+    }
+
+    @JsonValue
+    public String getColor() {
+        return color;
     }
 }

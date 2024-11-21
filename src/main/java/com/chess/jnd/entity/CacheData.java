@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.index.Indexed;
 @RedisHash("cacheData")
 public class CacheData {
     @Id
-    private String key;
+    private Integer key;
 
     @Indexed
     private String value;

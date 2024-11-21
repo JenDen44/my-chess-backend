@@ -6,11 +6,11 @@ import com.chess.jnd.entity.MoveRequest;
 import com.chess.jnd.service.GameInfoService;
 import com.chess.jnd.service.GameService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
 
 @RestController
 public class GameController {
@@ -29,21 +29,21 @@ public class GameController {
        return ResponseEntity.ok(gameService.createNewGame(gameRequest));
     }
 
-    @GetMapping("/{token}")
-    public ResponseEntity<GameResponse> currentGame(@PathVariable String token) throws JsonProcessingException {
-        return ResponseEntity.ok(gameService.getCurrentGame(UUID.fromString(token)));
+    @GetMapping("/game")
+    public ResponseEntity<GameResponse> currentGame(HttpServletRequest request) throws JsonProcessingException {
+        return ResponseEntity.ok(gameService.getCurrentGame(request));
     }
 
-    @PostMapping("/{token}/move")
-    public ResponseEntity<GameResponse> move(@PathVariable UUID token,
+    @PostMapping("/game/move")
+    public ResponseEntity<GameResponse> move(HttpServletRequest request,
                                              @RequestBody MoveRequest moveRequest) {
-        gameService.move(moveRequest);
+        gameService.move(request, moveRequest);
         return new ResponseEntity<>(null);
     }
 
-    @PostMapping("/{token}/give-up")
-    public ResponseEntity<GameResponse> giveUp(@RequestParam UUID token) {
-        gameService.giveUp(token);
+    @PostMapping("/game/give-up")
+    public ResponseEntity<GameResponse> giveUp(HttpServletRequest request) {
+        gameService.giveUp(request);
         return new ResponseEntity<>(null);
     }
 }

@@ -6,16 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class GameResponse {
-    private UUID tokenForWhitePlayer;
+    private String tokenForWhitePlayer;
 
-    private UUID tokenForBlackPlayer;
+    private String tokenForBlackPlayer;
 
     private GameInfo info;
 
