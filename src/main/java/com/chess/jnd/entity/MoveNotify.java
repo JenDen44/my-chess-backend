@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class MoveNotify {
-    int fromX;
+    private int fromX;
 
-    int toX;
+    private int toX;
 
-    int fromY;
+    private int fromY;
 
-    int toY;
+    private int toY;
 
-    Color activeColor;
+    private Color activeColor;
 }

@@ -1,6 +1,5 @@
 package com.chess.jnd.config;
 
-
 import com.chess.jnd.entity.Game;
 import com.chess.jnd.notification.WebSocketSessionService;
 import com.chess.jnd.service.GameService;
