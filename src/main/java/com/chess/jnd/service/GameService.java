@@ -67,6 +67,10 @@ public class GameService {
         return game;
     }
 
+    public Game findGameByToken(String token) throws JsonProcessingException {
+        return findGameById(jwtService.getGameId(token));
+    }
+
     public Game saveGame(Game game) throws JsonProcessingException {
         redisService.save(game);
         return gameRepository.save(game);

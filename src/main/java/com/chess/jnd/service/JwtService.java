@@ -46,21 +46,15 @@ public class JwtService {
         return token;
     }
 
-    public Integer getGameId(String token) {
-        byte[] secretKeyBytes = secretKey.getBytes();
-        SecretKey key = Keys.hmacShaKeyFor(secretKeyBytes);
-
-        JwtParser parser = Jwts.parser()
-                .verifyWith(key)
-                .build();
-
-        Claims claims = parser.parseSignedClaims(token).getPayload();
-        String gameId = (String) claims.get("sub");
-
-        return Integer.parseInt(gameId);
+    public Integer getGameId(String token) throws JsonProcessingException {
+        return getClaim(token, Integer.class, "sub");
     }
 
     public Color getColor(String token) throws JsonProcessingException {
+        return getClaim(token, Color.class, "Color");
+    }
+
+    private  <T> T getClaim(String token, Class<T> tClass, String claimName) throws JsonProcessingException {
         byte[] secretKeyBytes = secretKey.getBytes();
         SecretKey key = Keys.hmacShaKeyFor(secretKeyBytes);
 
@@ -69,9 +63,10 @@ public class JwtService {
                 .build();
 
         Claims claims = parser.parseSignedClaims(token).getPayload();
-        Color color = mapper.readValue((String) claims.get("Color"), Color.class);
+        T claim = mapper.readValue((String) claims.get(claimName), tClass);
 
-        return color;
+        return claim;
+
     }
 
     public String resolveToken(HttpServletRequest request) {

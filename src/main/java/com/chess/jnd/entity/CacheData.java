@@ -11,10 +11,10 @@ import org.springframework.data.redis.core.index.Indexed;
 @Getter
 @Accessors(chain = true)
 @RedisHash("cacheData")
-public class CacheData {
+public class CacheData<T> {
     @Id
     private Integer key;
 
     @Indexed
-    private String value;
+    private T value;
 }
