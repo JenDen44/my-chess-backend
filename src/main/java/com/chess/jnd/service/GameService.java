@@ -3,6 +3,7 @@ package com.chess.jnd.service;
 import com.chess.jnd.entity.*;
 import com.chess.jnd.entity.figures.ShortFigureName;
 import com.chess.jnd.repository.GameRepository;
+import com.chess.jnd.utils.GameMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,14 +20,16 @@ public class GameService {
     private final GameRepository gameRepository;
     private final GameInfoService gameInfoService;
     private final ObjectMapper mapper;
+    private final GameMapper gameMapper;
     private final JwtService jwtService;
     private final GameRedisService redisService;
 
     @Autowired
-    public GameService(GameRepository gameRepository, GameInfoService gameInfoService, ObjectMapper mapper, JwtService jwtService, GameRedisService redisService) {
+    public GameService(GameRepository gameRepository, GameInfoService gameInfoService, ObjectMapper mapper, GameMapper gameMapper, JwtService jwtService, GameRedisService redisService) {
         this.gameRepository = gameRepository;
         this.gameInfoService = gameInfoService;
         this.mapper = mapper;
+        this.gameMapper = gameMapper;
         this.jwtService = jwtService;
         this.redisService = redisService;
     }
@@ -36,55 +39,52 @@ public class GameService {
         String board  = mapper.writeValueAsString(shortFigureNames);
         Game game = new Game(board);
         gameInfoService.saveGameInfo(game.getInfoId());
-        Game savedGameToDB = saveGame(game);
+        GameRedis savedGameToDB = saveGame(game);
 
         String whiteToken = jwtService.generateCustomToken(savedGameToDB.getId(),Color.WHITE);
         String blackToken = jwtService.generateCustomToken(savedGameToDB.getId(), Color.BLACK);
         savedGameToDB.setTokenForWhitePlayer(whiteToken);
         savedGameToDB.setTokenForBlackPlayer(blackToken);
-        savedGameToDB = saveGame(savedGameToDB);
+        savedGameToDB = saveGame(gameMapper.mapToGame(savedGameToDB));
 
         return GameResponse.builder()
                 .info(savedGameToDB.getInfoId())
                 .tokenForBlackPlayer(savedGameToDB.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(savedGameToDB.getTokenForWhitePlayer())
-                .board(mapper.readValue(savedGameToDB.getBoard(), ShortFigureName[][].class))
+                .board(savedGameToDB.getBoard().getShortNames())
                 .active(savedGameToDB.getActive())
                 .currentColor(gameRequest.getColor())
                 .build();
     }
 
-    public Game findGameById(Integer id) throws JsonProcessingException {
+    public GameRedis findGameById(Integer id) throws JsonProcessingException {
         var game = redisService.get(id);
 
         if (game == null) {
-             game = gameRepository.findById(id)
+             Game gameFromDB = gameRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Game with id " + id + " is not found in DB"));
 
-            redisService.save(game);
+          game = redisService.save(gameMapper.mapToGameRedis(gameFromDB));
         }
 
         return game;
     }
 
-    public Game findGameByToken(String token) throws JsonProcessingException {
+    public GameRedis findGameByToken(String token) throws JsonProcessingException {
         return findGameById(jwtService.getGameId(token));
     }
 
-    public Game saveGame(Game game) throws JsonProcessingException {
-        redisService.save(game);
-        return gameRepository.save(game);
+    public GameRedis saveGame(Game game) throws JsonProcessingException {
+        redisService.save(gameMapper.mapToGameRedis(game));
+
+        return gameMapper.mapToGameRedis(gameRepository.save(game));
     }
 
-    public Game updateGame(Game game, Integer id) throws JsonProcessingException {
+    public GameRedis updateGame(Game game, Integer id) throws JsonProcessingException {
         var gameFromDb = findGameById(id);
 
-        gameFromDb.setInfoId(game.getInfoId());
-        gameFromDb.setBoard(game.getBoard());
-        gameFromDb.setActive(game.getActive());
-        gameFromDb.setTokenForWhitePlayer(game.getTokenForWhitePlayer());
-        gameFromDb.setTokenForBlackPlayer(game.getTokenForBlackPlayer());
-        saveGame(gameFromDb);
+        gameFromDb = gameMapper.mapToGameRedis(game);
+        saveGame(gameMapper.mapToGame(gameFromDb));
 
         return gameFromDb;
     }
@@ -112,13 +112,13 @@ public class GameService {
 
     public GameResponse getCurrentGame(HttpServletRequest request) throws JsonProcessingException {
         String token = jwtService.resolveToken(request);
-        Game game = findGameById(jwtService.getGameId(token));
+        GameRedis game = findGameById(jwtService.getGameId(token));
 
         return GameResponse.builder()
                 .info(game.getInfoId())
                 .tokenForBlackPlayer(game.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(game.getTokenForWhitePlayer())
-                .board(mapper.readValue(game.getBoard(), ShortFigureName[][].class))
+                .board(game.getBoard().getShortNames())
                 .active(game.getActive())
                 .currentColor(jwtService.getColor(token))
                 .build();

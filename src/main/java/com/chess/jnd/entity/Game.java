@@ -1,6 +1,8 @@
 package com.chess.jnd.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "games")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id

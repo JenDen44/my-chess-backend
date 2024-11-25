@@ -1,7 +1,6 @@
-package com.chess.jnd.config;
+package com.chess.jnd.notification;
 
-import com.chess.jnd.entity.Game;
-import com.chess.jnd.notification.WebSocketSessionService;
+import com.chess.jnd.entity.GameRedis;
 import com.chess.jnd.service.GameService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -28,7 +27,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String token = message.getPayload();
-        Game game = gameService.findGameByToken(token);
+        GameRedis game = gameService.findGameByToken(token);
 
         if (game == null) {
             session.close();
