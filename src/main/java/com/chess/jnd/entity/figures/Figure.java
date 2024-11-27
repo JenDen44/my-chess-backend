@@ -1,5 +1,6 @@
 package com.chess.jnd.entity.figures;
 
+import com.chess.jnd.entity.Board;
 import com.chess.jnd.entity.Cell;
 import com.chess.jnd.entity.Color;
 import lombok.Data;
@@ -11,6 +12,7 @@ public class Figure {
     private Color color;
 
     private Cell cell;
+    private Board board;
 
     public Figure(FigureName name, Color color, Cell cell) {
         this.name = name;
@@ -65,10 +67,9 @@ public class Figure {
     }
 
     public void move(Cell cell) {
-        if (this.canMove(cell)) {
-            this.cell.setFigure(null);
-            this.cell = cell;
-            this.cell.setFigure(this);
-        }
+        this.cell.setFigure(null);
+        this.cell = cell;
+        this.cell.setFigure(this);
+        this.getBoard().setPassantCell(null);
     }
 }

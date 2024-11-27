@@ -69,4 +69,9 @@ public class Cell {
         }
         return true;
     }
+
+    public boolean checkEnemy(Figure figure) {
+        return this.figure.getColor() != figure.getColor();
+    }
 }
+
