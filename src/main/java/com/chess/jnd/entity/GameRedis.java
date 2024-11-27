@@ -16,7 +16,7 @@ public class GameRedis {
 
     private String tokenForBlackPlayer;
 
-    private GameInfo infoId;
+    private GameInfo gameInfo;
 
     private Board board;
 

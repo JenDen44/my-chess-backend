@@ -20,21 +20,21 @@ public class GameRedisService {
 
     public GameRedis save(GameRedis game) {
         CacheData<GameRedis> gameCacheData = new CacheData<>(game.getId(), game);
-
+        
         return redisRepository.save(gameCacheData).getValue();
     }
 
     public GameRedis get(Integer gameId) {
         Optional<CacheData<GameRedis>> gameCacheData = redisRepository.findById(gameId);
 
-        if (gameCacheData.isPresent()) {
-            return gameCacheData.get().getValue();
+        if (!gameCacheData.isPresent()) {
+          throw new RuntimeException("game is not found in Redis Repository");
         }
 
-        return null;
+        return gameCacheData.get().getValue();
     }
 
-    public void delete(Integer id) {
-        redisRepository.deleteById(id);
+    public void delete(Integer gameId) {
+        redisRepository.deleteById(gameId);
     }
 }

@@ -25,7 +25,7 @@ public class GameMapper {
                 .tokenForBlackPlayer(gameRedis.getTokenForBlackPlayer())
                 .active(gameRedis.getActive())
                 .board(mapper.writeValueAsString(gameRedis.getBoard().getShortNames()))
-                .infoId(gameRedis.getInfoId())
+                .gameInfo(gameRedis.getGameInfo())
                 .build();
 
     }
@@ -37,7 +37,7 @@ public class GameMapper {
                 .tokenForBlackPlayer(game.getTokenForBlackPlayer())
                 .active(game.getActive())
                 .board(new Board(mapper.readValue(game.getBoard(), ShortFigureName[][].class)))
-                .infoId(game.getInfoId())
+                .gameInfo(game.getGameInfo())
                 .build();
     }
 }
