@@ -1,6 +1,8 @@
 package com.chess.jnd.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "games")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -23,7 +27,7 @@ public class Game {
     @OneToOne
     @JoinColumn(name = "id")
     @MapsId
-    private GameInfo infoId;
+    private GameInfo gameInfo;
 
     @Column(length = 1500)
     private String board;
@@ -31,7 +35,7 @@ public class Game {
     private Color active;
 
     public Game(String board) {
-        this.infoId = new GameInfo(GameStatus.IN_PROCESS);
+        this.gameInfo = new GameInfo(GameStatus.IN_PROCESS);
         this.board = board;
         this.active = Color.WHITE;
     }

@@ -1,8 +1,8 @@
-package com.chess.jnd.config;
+package com.chess.jnd.notification;
 
-import com.chess.jnd.entity.Game;
-import com.chess.jnd.notification.WebSocketSessionService;
-import com.chess.jnd.service.GameService;
+import com.chess.jnd.entity.GameRedis;
+import com.chess.jnd.service.GameCommonService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -17,10 +17,11 @@ import java.util.TimerTask;
 public class WebSocketHandler extends TextWebSocketHandler {
 
     private final WebSocketSessionService sessionService;
-    private final GameService gameService;
+    private final GameCommonService gameService;
     private TimerTask task = null;
 
-    public WebSocketHandler(WebSocketSessionService sessionService, GameService gameService) {
+    @Autowired
+    public WebSocketHandler(WebSocketSessionService sessionService, GameCommonService gameService) {
         this.sessionService = sessionService;
         this.gameService = gameService;
     }
@@ -28,7 +29,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         String token = message.getPayload();
-        Game game = gameService.findGameByToken(token);
+        GameRedis game = gameService.findGameByToken(token);
 
         if (game == null) {
             session.close();

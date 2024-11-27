@@ -1,7 +1,7 @@
 package com.chess.jnd.service;
 
 import com.chess.jnd.entity.CacheData;
-import com.chess.jnd.entity.Game;
+import com.chess.jnd.entity.GameRedis;
 import com.chess.jnd.repository.GameRedisRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,22 +18,23 @@ public class GameRedisService {
         this.redisRepository = redisRepository;
     }
 
-    public void save(Game game) {
-        CacheData<Game> gameCacheData = new CacheData<>(game.getId(), game);
-        redisRepository.save(gameCacheData);
+    public GameRedis save(GameRedis game) {
+        CacheData<GameRedis> gameCacheData = new CacheData<>(game.getId(), game);
+        
+        return redisRepository.save(gameCacheData).getValue();
     }
 
-    public Game get(Integer gameId) {
-        Optional<CacheData<Game>> gameCacheData = redisRepository.findById(gameId);
+    public GameRedis get(Integer gameId) {
+        Optional<CacheData<GameRedis>> gameCacheData = redisRepository.findById(gameId);
 
-        if (gameCacheData.isPresent()) {
-            return gameCacheData.get().getValue();
+        if (!gameCacheData.isPresent()) {
+          throw new RuntimeException("game is not found in Redis Repository");
         }
 
-        return null;
+        return gameCacheData.get().getValue();
     }
 
-    public void delete(Integer id) {
-        redisRepository.deleteById(id);
+    public void delete(Integer gameId) {
+        redisRepository.deleteById(gameId);
     }
 }
