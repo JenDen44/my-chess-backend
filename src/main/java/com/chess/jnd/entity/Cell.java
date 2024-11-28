@@ -23,7 +23,11 @@ public class Cell {
     }
 
     public boolean compare(Cell cell) {
-        return this.getX() == cell.getX() && this.getY() == cell.getY();
+        if (cell != null) {
+            return this.getX() == cell.getX() && this.getY() == cell.getY();
+        }
+
+        return false;
     }
 
     public boolean isEmpty() {
@@ -71,7 +75,13 @@ public class Cell {
     }
 
     public boolean checkEnemy(Figure figure) {
-        return this.figure.getColor() != figure.getColor();
+        Figure currentFigure = this.getFigure();
+
+        if (currentFigure != null) {
+            return currentFigure.getColor() != figure.getColor();
+        }
+
+        return false;
     }
 }
 

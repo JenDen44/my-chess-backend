@@ -22,7 +22,7 @@ public class Pawn extends Figure {
             return Math.abs(dx) == 1 && dy == currentDY;
         }
 
-        if (Math.abs(dx) == 1 && dy == currentDY && this.getBoard().getPassantCell().compare(cell)) {
+        if (Math.abs(dx) == 1 && dy == currentDY && cell.compare(this.getBoard().getPassantCell())) {
             return true;
         }
 

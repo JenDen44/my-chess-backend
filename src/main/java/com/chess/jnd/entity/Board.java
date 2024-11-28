@@ -36,7 +36,10 @@ public class Board {
             for (int x = 0; x < shortNames[y].length; x++) {
                 var shortName = shortNames[y][x];
 
-                if (shortName != null) this.figureFactory.createByShortName(shortName, this.getCell(x, y));
+                if (shortName != null) {
+                    Figure newFigure = this.figureFactory.createByShortName(shortName, this.getCell(x, y));
+                    newFigure.setBoard(this);
+                }
             }
         }
     }
