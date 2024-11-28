@@ -3,10 +3,13 @@ package com.chess.jnd.entity;
 import com.chess.jnd.entity.figures.Figure;
 import com.chess.jnd.entity.figures.FigureFactory;
 import com.chess.jnd.entity.figures.ShortFigureName;
+import lombok.Data;
 
+@Data
 public class Board {
     private FigureFactory figureFactory;
     private Cell[][] cells = new Cell[8][8];
+    private Cell passantCell;
 
     public Board(ShortFigureName[][] shortNames) {
         this.figureFactory = new FigureFactory();
@@ -33,7 +36,10 @@ public class Board {
             for (int x = 0; x < shortNames[y].length; x++) {
                 var shortName = shortNames[y][x];
 
-                if (shortName != null) this.figureFactory.createByShortName(shortName, this.getCell(x, y));
+                if (shortName != null) {
+                    Figure newFigure = this.figureFactory.createByShortName(shortName, this.getCell(x, y));
+                    newFigure.setBoard(this);
+                }
             }
         }
     }
