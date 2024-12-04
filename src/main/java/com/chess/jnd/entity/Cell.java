@@ -85,5 +85,14 @@ public class Cell {
 
         return false;
     }
+
+    public void setFigure(Figure figure) {
+        this.figure = figure;
+
+        if (this.figure != null) {
+            this.figure.setCell(this);
+            this.figure.setBoard(this.getBoard());
+        }
+    }
 }
 

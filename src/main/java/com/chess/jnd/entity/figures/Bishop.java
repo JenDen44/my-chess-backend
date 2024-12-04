@@ -9,8 +9,8 @@ public class Bishop extends Figure {
         super(FigureName.BISHOP, color, cell);
     }
 
-    public boolean canMove(Cell cell) {
-        if (!super.canMove(cell)) {
+    public boolean checkCorrectMove(Cell cell) {
+        if (!super.checkCorrectMove(cell)) {
             return false;
         }
 

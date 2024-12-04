@@ -143,7 +143,7 @@ public class GameCommonService {
             throw new GameWrongDataException("The figure " + figureFrom + " can't move to cell " + cellTo);
         }
 
-        figureFrom.move(cellTo);
+        figureFrom.move(cellTo,true);
         game.setActive(game.getActive() == Color.WHITE ? Color.BLACK : Color.WHITE);
         // TODO GameInfo change state (save to GameRedis and Game work?)
         saveGame(game);
