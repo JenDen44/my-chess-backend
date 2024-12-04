@@ -1,6 +1,7 @@
 package com.chess.jnd.service;
 
 import com.chess.jnd.entity.*;
+import com.chess.jnd.error_handling.GameNotFoundException;
 import com.chess.jnd.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,14 @@ public class GameService {
         Optional<Game> game = gameRepository.findById(gameId);
 
         if (!game.isPresent()) {
-          throw new RuntimeException("game is not found in DB");
+          throw new GameNotFoundException("Game is not found in DB by id " + gameId);
         }
 
         return game.get();
     }
 
     public void delete(Integer gameId) {
+        get(gameId);
         gameRepository.deleteById(gameId);
     }
 }

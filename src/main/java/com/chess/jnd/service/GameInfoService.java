@@ -1,6 +1,7 @@
 package com.chess.jnd.service;
 
 import com.chess.jnd.entity.GameInfo;
+import com.chess.jnd.error_handling.GameInfoNotFoundException;
 import com.chess.jnd.repository.GameInfoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,29 +17,19 @@ public class GameInfoService {
         this.gameInfoRepository = gameInfoRepository;
     }
 
-    public GameInfo findGameInfoById(Integer id) {
-        var gameInfo = gameInfoRepository.findById(id)
-                .orElseThrow (() -> new RuntimeException("GameInfo with id " + id + " is not found in DB"));
+    public GameInfo get(Integer infoId) {
+        var gameInfo = gameInfoRepository.findById(infoId).orElseThrow
+                (() -> new GameInfoNotFoundException("GameInfo with id is not found in DB by id " + infoId));
 
         return gameInfo;
     }
 
-    public GameInfo saveGameInfo(GameInfo gameInfo) {
+    public GameInfo save(GameInfo gameInfo) {
         return gameInfoRepository.save(gameInfo);
     }
 
-    public GameInfo updateGameInfo(GameInfo gameInfo, Integer id) {
-        var gameInfoFromDb = findGameInfoById(id);
-
-        gameInfoFromDb.setDetail(gameInfo.getDetail());
-        gameInfoFromDb.setStatus(gameInfo.getStatus());
-        gameInfoRepository.save(gameInfoFromDb);
-
-        return gameInfoFromDb;
-    }
-
     public void deleteGameInfo(Integer id) {
-       findGameInfoById(id);
+       get(id);
         gameInfoRepository.deleteById(id);
     }
 }

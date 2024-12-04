@@ -27,11 +27,8 @@ public class GameRedisService {
     public GameRedis get(Integer gameId) {
         Optional<CacheData<GameRedis>> gameCacheData = redisRepository.findById(gameId);
 
-        if (!gameCacheData.isPresent()) {
-          throw new RuntimeException("game is not found in Redis Repository");
-        }
+        return gameCacheData.map(CacheData::getValue).orElse(null);
 
-        return gameCacheData.get().getValue();
     }
 
     public void delete(Integer gameId) {

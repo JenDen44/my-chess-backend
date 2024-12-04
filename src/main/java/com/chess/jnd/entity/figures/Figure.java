@@ -3,9 +3,11 @@ package com.chess.jnd.entity.figures;
 import com.chess.jnd.entity.Board;
 import com.chess.jnd.entity.Cell;
 import com.chess.jnd.entity.Color;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class Figure {
     private FigureName name;
 

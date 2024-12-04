@@ -1,9 +1,11 @@
 package com.chess.jnd.entity;
 
 import com.chess.jnd.entity.figures.Figure;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class Cell {
     private int x;
 
