@@ -1,6 +1,7 @@
 package com.chess.jnd.service;
 
 import com.chess.jnd.entity.Color;
+import com.chess.jnd.error_handling.TokenNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -76,6 +77,6 @@ public class JwtService {
             return bearerToken.substring(7);
         }
 
-        return null;
+        throw new TokenNotFoundException("Token is not specified in Authorization header");
     }
 }

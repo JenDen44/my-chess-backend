@@ -3,6 +3,8 @@ package com.chess.jnd.service;
 import com.chess.jnd.entity.*;
 import com.chess.jnd.entity.figures.Figure;
 import com.chess.jnd.entity.figures.ShortFigureName;
+import com.chess.jnd.error_handling.GameNotFoundException;
+import com.chess.jnd.error_handling.GameWrongDataException;
 import com.chess.jnd.notification.GameNotificationService;
 import com.chess.jnd.utils.GameMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -78,8 +80,6 @@ public class GameCommonService {
         String board  = mapper.writeValueAsString(shortFigureNames);
         Game game = new Game(board);
 
-        gameInfoService.saveGameInfo(game.getGameInfo());// TODO test without it
-
         Game savedGameToDB = gameService.save(game);
         String whiteToken = jwtService.generateCustomToken(savedGameToDB.getId(), Color.WHITE);
         String blackToken = jwtService.generateCustomToken(savedGameToDB.getId(), Color.BLACK);
@@ -123,7 +123,7 @@ public class GameCommonService {
         GameRedis game = findGameByToken(token);
 
         if (game.getGameInfo().getStatus().equals(GameStatus.FINISHED)) {
-            throw new RuntimeException("The game is already finished");
+            throw new GameWrongDataException("The game is already finished");
         }
 
         Board board = game.getBoard();
@@ -132,15 +132,15 @@ public class GameCommonService {
         Figure figureFrom = cellFrom.getFigure();
 
         if (figureFrom == null) {
-            throw new RuntimeException("Figure doesn't exist in cell from");
+            throw new GameNotFoundException("Figure doesn't exist in cell from");
         }
 
         if (!figureFrom.getColor().equals(game.getActive())) {
-            throw new RuntimeException("The cell from color should be " + game.getActive().getColor());
+            throw new GameWrongDataException("The cell from color should be " + game.getActive().getColor());
         }
 
         if (!figureFrom.canMove(cellTo)) {
-            throw new RuntimeException("The figure " + figureFrom + " can't move to cell " + cellTo);
+            throw new GameWrongDataException("The figure " + figureFrom + " can't move to cell " + cellTo);
         }
 
         figureFrom.move(cellTo);
@@ -174,7 +174,7 @@ public class GameCommonService {
         GameInfo gameInfo = game.getGameInfo();
 
         if (gameInfo.getStatus().equals(GameStatus.FINISHED)) {
-            throw new RuntimeException("The game is already finished");
+            throw new GameWrongDataException("The game is already finished");
         }
 
         gameInfo.setStatus(GameStatus.FINISHED);
