@@ -94,9 +94,12 @@ public class Board {
         for (int y = 0; y < this.cells.length; y++) {
             for (int x = 0; x < this.cells[y].length; x++) {
                 Cell cell = this.getCell(x, y);
+                Figure figureFromCell = cell.getFigure();
 
-                if (cell.getFigure().getName() == name && cell.getFigure().getColor() == color) {
-                    return cell.getFigure();
+                if (figureFromCell == null) continue;
+
+                if (figureFromCell.getName() == name && figureFromCell.getColor() == color) {
+                    return figureFromCell;
                 }
             }
         }
@@ -114,8 +117,11 @@ public class Board {
         for (int y = 0; y < this.cells.length; y++) {
             for (int x = 0; x < this.cells[y].length; x++) {
                 Cell cell = this.getCell(x, y);
+                Figure figureFromCell = cell.getFigure();
 
-                if (cell.getFigure().getColor() == oppositeColor && cell.getFigure().checkCorrectMove(figure.getCell())) {
+                if (figureFromCell == null) continue;
+
+                if (figureFromCell.getColor() == oppositeColor && figureFromCell.checkCorrectMove(figure.getCell())) {
                     return true;
                 }
             }
