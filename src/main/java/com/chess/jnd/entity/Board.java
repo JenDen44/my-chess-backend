@@ -2,6 +2,7 @@ package com.chess.jnd.entity;
 
 import com.chess.jnd.entity.figures.Figure;
 import com.chess.jnd.entity.figures.FigureFactory;
+import com.chess.jnd.entity.figures.FigureName;
 import com.chess.jnd.entity.figures.ShortFigureName;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ public class Board {
     private FigureFactory figureFactory;
     private Cell[][] cells = new Cell[8][8];
     private Cell passantCell;
+    private PrevStep prevStep;
 
     public Board(ShortFigureName[][] shortNames) {
         this.figureFactory = new FigureFactory();
@@ -66,5 +68,73 @@ public class Board {
         }
 
         return shortFigureNames;
+    }
+
+    public void setPrevStep(Cell fromCell, Cell toCell) {
+        this.prevStep = PrevStep.builder()
+                .fromCell(fromCell)
+                .toCell(toCell)
+                .fromFigure(fromCell.getFigure())
+                .toFigure(toCell.getFigure())
+                .build();
+    }
+
+    public boolean checkIfMove(Figure figure, Cell toCell) {
+        figure.move(toCell, false);
+
+        Figure king = this.findFigure(FigureName.KING, figure.getColor());
+        boolean canBeEaten = this.checkCanBeEaten(king);
+
+        this.goBack();
+
+        return canBeEaten;
+    }
+
+    public  Figure findFigure(FigureName name, Color color) {
+        for (int y = 0; y < this.cells.length; y++) {
+            for (int x = 0; x < this.cells[y].length; x++) {
+                Cell cell = this.getCell(x, y);
+                Figure figureFromCell = cell.getFigure();
+
+                if (figureFromCell == null) continue;
+
+                if (figureFromCell.getName() == name && figureFromCell.getColor() == color) {
+                    return figureFromCell;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public boolean checkCanBeEaten(Figure figure) {
+        if (figure == null) {
+            return false;
+        }
+
+        Color oppositeColor = figure.getColor() == Color.WHITE ? Color.BLACK : Color.WHITE;
+
+        for (int y = 0; y < this.cells.length; y++) {
+            for (int x = 0; x < this.cells[y].length; x++) {
+                Cell cell = this.getCell(x, y);
+                Figure figureFromCell = cell.getFigure();
+
+                if (figureFromCell == null) continue;
+
+                if (figureFromCell.getColor() == oppositeColor && figureFromCell.checkCorrectMove(figure.getCell())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void goBack() {
+        PrevStep prevStep = this.getPrevStep();
+        if (prevStep != null) {
+            prevStep.getFromCell().setFigure(prevStep.getFromFigure());
+            prevStep.getToCell().setFigure(prevStep.getToFigure());
+        }
     }
 }

@@ -65,13 +65,31 @@ public class Figure {
 
         if (figure == null) return true;
 
-        return figure.getColor() != this.getColor() && figure.getName() != FigureName.KING;
+        if (figure.getColor() == this.getColor() && figure.getName() == FigureName.KING) {
+            return false;
+        }
+
+        if (!this.checkCorrectMove(cell)) {
+            return false;
+        }
+
+        return !this.board.checkIfMove(this, cell);
+
     }
 
-    public void move(Cell cell) {
+    public void move(Cell cell, boolean isResetPassant) {
+        this.board.setPrevStep(this.cell, cell);
         this.cell.setFigure(null);
         this.cell = cell;
         this.cell.setFigure(this);
         this.getBoard().setPassantCell(null);
+
+        if (isResetPassant) {
+            this.getBoard().setPassantCell(null);
+        }
+    }
+
+    public boolean checkCorrectMove(Cell cell) {
+        return cell.getFigure() == null || cell.getFigure().getColor() != this.getColor();
     }
 }

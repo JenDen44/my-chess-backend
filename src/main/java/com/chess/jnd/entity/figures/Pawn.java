@@ -9,8 +9,8 @@ public class Pawn extends Figure {
         super(FigureName.PAWN, color, cell);
     }
 
-    public boolean canMove(Cell cell) {
-        if (!super.canMove(cell)) {
+    public boolean checkCorrectMove(Cell cell) {
+        if (!super.checkCorrectMove(cell)) {
             return false;
         }
 
@@ -52,7 +52,7 @@ public class Pawn extends Figure {
             int dy = cell.getY() - this.getCell().getY();
             int currentDY = this.getColor() == Color.BLACK ? 1 : -1;
 
-            super.move(cell);
+            super.move(cell,true);
 
             if (dx == 0 && dy == 2 * currentDY) {
                 this.getBoard().setPassantCell(this.getBoard().getCell(this.getCell().getX(), this.getCell().getY() - currentDY));
@@ -62,7 +62,7 @@ public class Pawn extends Figure {
         }
 
         if (cell.getY() == 0 || cell.getY() == 7) {
-            super.move(cell);
+            super.move(cell, true);
 
             new Queen(this.getColor(), cell);
 
@@ -71,7 +71,7 @@ public class Pawn extends Figure {
 
 
         if (cell.compare(this.getBoard().getPassantCell())) {
-            super.move(cell);
+            super.move(cell, true);
 
             int currentDY = this.getColor() == Color.BLACK ? -1 : 1;
             Cell figureCell = this.getBoard().getCell(cell.getX(), cell.getY() + currentDY);
@@ -80,7 +80,13 @@ public class Pawn extends Figure {
             return;
         }
 
-        super.move(cell);
+        super.move(cell, true);
+    }
+
+    public boolean isFirstStep() {
+        int startY = this.getColor() == Color.WHITE ? 6 : 1;
+
+        return this.getCell().getY() == startY;
     }
 
 }

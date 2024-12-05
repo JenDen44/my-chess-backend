@@ -9,8 +9,8 @@ public class Queen extends Figure {
         super(FigureName.QUEEN, color, cell);
     }
 
-    public boolean canMove(Cell cell) {
-        if (!super.canMove(cell)) {
+    public boolean checkCorrectMove(Cell cell) {
+        if (!super.checkCorrectMove(cell)) {
             return false;
         }
 
