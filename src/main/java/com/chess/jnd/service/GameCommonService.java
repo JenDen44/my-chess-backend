@@ -130,6 +130,7 @@ public class GameCommonService {
         Cell cellFrom = board.getCell(moveRequest.getFromX(), moveRequest.getFromY());
         Cell cellTo = board.getCell(moveRequest.getToX(), moveRequest.getToY());
         Figure figureFrom = cellFrom.getFigure();
+        GameInfo gameInfo = game.getGameInfo();
 
         if (figureFrom == null) {
             throw new GameNotFoundException("Figure doesn't exist in cell from");
@@ -145,12 +146,8 @@ public class GameCommonService {
 
         figureFrom.move(cellTo,true);
         game.setActive(game.getActive() == Color.WHITE ? Color.BLACK : Color.WHITE);
-        // TODO GameInfo change state (save to GameRedis and Game work?)
-        saveGame(game);
 
-        GameInfo gameInfo = game.getGameInfo();
         String oppositeToken = getOppositeToken(game, token);
-
         MoveNotify moveNotify = MoveNotify.builder()
                 .activeColor(game.getActive())
                 .fromY(moveRequest.getFromY())
@@ -160,6 +157,32 @@ public class GameCommonService {
                 .build();
 
         notificationService.sendNotificationForMove(moveNotify, oppositeToken);
+
+        if (board.isCheckMate(game.getActive())) {
+            gameInfo.setStatus(GameStatus.FINISHED);
+            gameInfo.setDetail(game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE);
+
+            GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
+                    .detail(gameInfo.getDetail())
+                    .status(gameInfo.getStatus())
+                    .build();
+
+            notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
+
+        } else if (board.isDraw(game.getActive())) {
+            gameInfo.setStatus(GameStatus.FINISHED);
+            gameInfo.setDetail(GameResult.DRAW);
+
+            GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
+                    .detail(gameInfo.getDetail())
+                    .status(gameInfo.getStatus())
+                    .build();
+
+            notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
+        }
+
+        // TODO GameInfo change state (save to GameRedis and Game work?)
+        saveGame(game);
 
         return GameInfoResponse.builder()
                 .detail(gameInfo.getDetail())
