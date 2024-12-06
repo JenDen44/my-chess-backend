@@ -137,4 +137,46 @@ public class Board {
             prevStep.getToCell().setFigure(prevStep.getToFigure());
         }
     }
+
+    public boolean isCheck(Color color) {
+        Figure king  = this.findFigure(FigureName.KING, color);
+
+        return this.checkCanBeEaten(king);
+    }
+
+    public boolean canMove(Color color) {
+        for (int y = 0; y < this.cells.length; y++) {
+            for (int x = 0; x < this.cells[y].length; x++) {
+                Figure figure = this.getCell(x, y).getFigure();
+
+                if (figure == null || !figure.getColor().equals(color)) continue;
+
+                for (int cY = 0; cY < this.cells.length; cY++) {
+                    for (int cX = 0; cX < this.cells[cY].length; cX++) {
+                        Cell cell = this.getCell(cX, cY);
+
+                        if (figure.canMove(cell)) return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isCheckMate(Color color) {
+        if (!this.isCheck(color)) {
+            return false;
+        }
+
+        return !this.canMove(color);
+    }
+
+    public boolean isDraw(Color color) {
+        if (this.isCheck(color)) {
+            return false;
+        }
+
+        return !this.canMove(color);
+    }
 }
