@@ -56,11 +56,6 @@ public class GameController {
                     ),
 
                     @ApiResponse(
-                            description = "Validation error",
-                            responseCode = "422"
-                    ),
-
-                    @ApiResponse(
                             description = "Not found",
                             responseCode = "404"
                     )
@@ -83,6 +78,11 @@ public class GameController {
                     @ApiResponse(
                             description = "Validation error",
                             responseCode = "422"
+                    ),
+
+                    @ApiResponse(
+                            description = "Not found",
+                            responseCode = "404"
                     )
             }
     )
