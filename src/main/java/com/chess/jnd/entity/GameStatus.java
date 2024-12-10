@@ -1,5 +1,6 @@
 package com.chess.jnd.entity;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -11,5 +12,10 @@ public enum GameStatus {
 
     GameStatus(String status) {
         this.status = status;
+    }
+
+    @JsonValue
+    public String getStatus() {
+        return status;
     }
 }

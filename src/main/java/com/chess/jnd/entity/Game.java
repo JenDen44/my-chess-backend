@@ -34,6 +34,10 @@ public class Game {
 
     private Color active;
 
+    private String passantCell;
+
+    private String prevStep;
+
     public Game(String board) {
         this.gameInfo = new GameInfo(GameStatus.IN_PROCESS);
         this.board = board;

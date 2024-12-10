@@ -13,10 +13,14 @@ public class Board {
     private Cell passantCell;
     private PrevStep prevStep;
 
-    public Board(ShortFigureName[][] shortNames) {
+    public Board(ShortFigureName[][] shortNames, PassantCell cell, PrevStep prevStep) {
         this.figureFactory = new FigureFactory();
         this.init();
         this.addFigures(shortNames);
+
+        if (cell != null) {
+            this.setPassantCell(this.getCell(cell.getX(), cell.getY()));
+        }
     }
 
     private void init() {
@@ -72,10 +76,12 @@ public class Board {
 
     public void setPrevStep(Cell fromCell, Cell toCell) {
         this.prevStep = PrevStep.builder()
-                .fromCell(fromCell)
-                .toCell(toCell)
-                .fromFigure(fromCell.getFigure())
-                .toFigure(toCell.getFigure())
+                .fromX(fromCell.getX())
+                .fromY(fromCell.getY())
+                .toX(toCell.getX())
+                .toY(toCell.getY())
+                .fromFigure(fromCell.getFigure() != null ? fromCell.getFigure().getShortName() : null)
+                .toFigure(toCell.getFigure() != null ? toCell.getFigure().getShortName() : null)
                 .build();
     }
 
@@ -132,9 +138,22 @@ public class Board {
 
     public void goBack() {
         PrevStep prevStep = this.getPrevStep();
-        if (prevStep != null) {
-            prevStep.getFromCell().setFigure(prevStep.getFromFigure());
-            prevStep.getToCell().setFigure(prevStep.getToFigure());
+
+        if (prevStep == null) return;
+
+        Cell fromCell = this.getCell(prevStep.getFromX(), prevStep.getFromY());
+        Cell toCell = this.getCell(prevStep.getToX(), prevStep.getToY());
+        ShortFigureName fromFigure = prevStep.getFromFigure();
+        ShortFigureName toFigure = prevStep.getToFigure();
+
+        if (fromCell != null && fromFigure != null) {
+            Figure newFigure = this.figureFactory.createByShortName(fromFigure, fromCell);
+            newFigure.setBoard(this);
+        }
+
+        if (toCell != null && toFigure != null) {
+            Figure newFigure = this.figureFactory.createByShortName(toFigure, toCell);
+            newFigure.setBoard(this);
         }
     }
 
