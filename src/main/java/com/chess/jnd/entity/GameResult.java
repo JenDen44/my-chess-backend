@@ -1,5 +1,6 @@
 package com.chess.jnd.entity;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -12,5 +13,10 @@ public enum GameResult {
 
     GameResult(String result) {
         this.result = result;
+    }
+
+    @JsonValue
+    public String getResult() {
+        return result;
     }
 }
