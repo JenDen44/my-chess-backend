@@ -17,6 +17,7 @@ public class PrevStep {
     private int toX;
 
     private int toY;
+
     private ShortFigureName fromFigure;
 
     private ShortFigureName toFigure;

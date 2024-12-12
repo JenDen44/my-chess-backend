@@ -14,11 +14,10 @@ public class BytesToGameConverter implements Converter<byte[], GameRedis> {
     private final Jackson2JsonRedisSerializer<GameRedis> serializer;
 
     public BytesToGameConverter() {
-
         serializer = new Jackson2JsonRedisSerializer<GameRedis>(GameRedis.class);
         ObjectMapper mapper = new ObjectMapper();
-        serializer.setObjectMapper(mapper);
 
+        serializer.setObjectMapper(mapper);
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
-public interface  GameToRedisGameMapper {
+public interface GameToRedisGameMapper {
     ObjectMapper mapper = new ObjectMapper();
 
     @Mapping(target = "board", qualifiedByName = "boardToString", source = "board")

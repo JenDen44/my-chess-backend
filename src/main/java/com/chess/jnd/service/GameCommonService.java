@@ -6,6 +6,7 @@ import com.chess.jnd.entity.figures.ShortFigureName;
 import com.chess.jnd.error_handling.GameNotFoundException;
 import com.chess.jnd.error_handling.GameWrongDataException;
 import com.chess.jnd.notification.GameNotificationService;
+import com.chess.jnd.utils.GameInfoGameInfoResponseMapper;
 import com.chess.jnd.utils.GameToRedisGameMapperImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +24,10 @@ public class GameCommonService {
     private final GameToRedisGameMapperImpl gameMapper;
     private final ObjectMapper mapper;
     private final GameNotificationService notificationService;
+    private final GameInfoGameInfoResponseMapper gameInfoMapper;
 
     @Autowired
-    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService) {
+    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper) {
         this.gameRedisService = gameRedisService;
         this.gameService = gameService;
         this.gameInfoService = gameInfoService;
@@ -33,6 +35,7 @@ public class GameCommonService {
         this.gameMapper = gameMapper;
         this.mapper = mapper;
         this.notificationService = notificationService;
+        this.gameInfoMapper = gameInfoMapper;
     }
 
     public GameRedis saveGame(GameRedis game) throws JsonProcessingException {
@@ -89,10 +92,9 @@ public class GameCommonService {
 
         savedGameToDB = gameService.save(game);
         GameRedis gameRedis = gameRedisService.save(gameMapper.gameToGameRedis(savedGameToDB));
-        System.out.println(gameRedis);
 
         return GameResponse.builder()
-                .info(gameRedis.getGameInfo())
+                .info(gameInfoMapper.gameInfoToGameInfoResponse(gameRedis.getGameInfo()))
                 .tokenForBlackPlayer(gameRedis.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(gameRedis.getTokenForWhitePlayer())
                 .board(gameRedis.getBoard())
@@ -106,7 +108,7 @@ public class GameCommonService {
         GameRedis game = findGameByToken(token);
 
         return GameResponse.builder()
-                .info(game.getGameInfo())
+                .info(gameInfoMapper.gameInfoToGameInfoResponse(game.getGameInfo()))
                 .tokenForBlackPlayer(game.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(game.getTokenForWhitePlayer())
                 .board(game.getBoard())

@@ -14,9 +14,9 @@ public class GameToBytesConverter implements Converter<GameRedis, byte[]> {
     private final Jackson2JsonRedisSerializer<GameRedis> serializer;
 
     public GameToBytesConverter() {
-
         serializer = new Jackson2JsonRedisSerializer<GameRedis>(GameRedis.class);
         ObjectMapper mapper = new ObjectMapper();
+
         serializer.setObjectMapper(mapper);
     }
 
