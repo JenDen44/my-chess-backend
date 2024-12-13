@@ -1,5 +1,6 @@
 package com.chess.jnd.entity;
 
+import com.chess.jnd.entity.figures.ShortFigureName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,12 @@ public class GameRedis {
 
     private GameInfo gameInfo;
 
-    private Board board;
+    private ShortFigureName[][] board;
 
     private Color active;
+
+    private PassantCell passantCell;
+
+    private PrevStep prevStep;
+
 }

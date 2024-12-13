@@ -22,7 +22,7 @@ public class GameResponse {
     private String tokenForBlackPlayer;
 
     @Schema(description = "Game info (status, details)", example = "status: finished, in_process / result: white / black / draw")
-    private GameInfo info;
+    private GameInfoResponse info;
 
     @Schema(description = "Board matrix contains figures", example = "[['k'],['q']]")
     private ShortFigureName[][] board;

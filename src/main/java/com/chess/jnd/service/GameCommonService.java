@@ -6,7 +6,8 @@ import com.chess.jnd.entity.figures.ShortFigureName;
 import com.chess.jnd.error_handling.GameNotFoundException;
 import com.chess.jnd.error_handling.GameWrongDataException;
 import com.chess.jnd.notification.GameNotificationService;
-import com.chess.jnd.utils.GameMapper;
+import com.chess.jnd.utils.GameInfoGameInfoResponseMapper;
+import com.chess.jnd.utils.GameToRedisGameMapperImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,12 +21,13 @@ public class GameCommonService {
     private final GameService gameService;
     private final GameInfoService gameInfoService;
     private final JwtService jwtService;
-    private final GameMapper gameMapper;
+    private final GameToRedisGameMapperImpl gameMapper;
     private final ObjectMapper mapper;
     private final GameNotificationService notificationService;
+    private final GameInfoGameInfoResponseMapper gameInfoMapper;
 
     @Autowired
-    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameMapper gameMapper, ObjectMapper mapper, GameNotificationService notificationService) {
+    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper) {
         this.gameRedisService = gameRedisService;
         this.gameService = gameService;
         this.gameInfoService = gameInfoService;
@@ -33,10 +35,11 @@ public class GameCommonService {
         this.gameMapper = gameMapper;
         this.mapper = mapper;
         this.notificationService = notificationService;
+        this.gameInfoMapper = gameInfoMapper;
     }
 
     public GameRedis saveGame(GameRedis game) throws JsonProcessingException {
-        gameService.save(gameMapper.mapToGame(game));
+        gameService.save(gameMapper.gameRedisToGame(game));
 
         return gameRedisService.save(game);
     }
@@ -46,7 +49,7 @@ public class GameCommonService {
 
         if (game == null) {
             Game gameFromDB = gameService.get(gameId);
-            game = gameRedisService.save(gameMapper.mapToGameRedis(gameFromDB));
+            game = gameRedisService.save(gameMapper.gameToGameRedis(gameFromDB));
         }
 
         return game;
@@ -88,13 +91,13 @@ public class GameCommonService {
         savedGameToDB.setTokenForBlackPlayer(blackToken);
 
         savedGameToDB = gameService.save(game);
-        GameRedis gameRedis = gameRedisService.save(gameMapper.mapToGameRedis(savedGameToDB));
+        GameRedis gameRedis = gameRedisService.save(gameMapper.gameToGameRedis(savedGameToDB));
 
         return GameResponse.builder()
-                .info(gameRedis.getGameInfo())
+                .info(gameInfoMapper.gameInfoToGameInfoResponse(gameRedis.getGameInfo()))
                 .tokenForBlackPlayer(gameRedis.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(gameRedis.getTokenForWhitePlayer())
-                .board(gameRedis.getBoard().getShortNames())
+                .board(gameRedis.getBoard())
                 .active(gameRedis.getActive())
                 .currentColor(gameRequest.getColor())
                 .build();
@@ -105,10 +108,10 @@ public class GameCommonService {
         GameRedis game = findGameByToken(token);
 
         return GameResponse.builder()
-                .info(game.getGameInfo())
+                .info(gameInfoMapper.gameInfoToGameInfoResponse(game.getGameInfo()))
                 .tokenForBlackPlayer(game.getTokenForBlackPlayer())
                 .tokenForWhitePlayer(game.getTokenForWhitePlayer())
-                .board(game.getBoard().getShortNames())
+                .board(game.getBoard())
                 .active(game.getActive())
                 .currentColor(jwtService.getColor(token))
                 .build();
@@ -126,7 +129,7 @@ public class GameCommonService {
             throw new GameWrongDataException("The game is already finished");
         }
 
-        Board board = game.getBoard();
+        Board board = new Board(game.getBoard(), game.getPassantCell(), game.getPrevStep());
         Cell cellFrom = board.getCell(moveRequest.getFromX(), moveRequest.getFromY());
         Cell cellTo = board.getCell(moveRequest.getToX(), moveRequest.getToY());
         Figure figureFrom = cellFrom.getFigure();
@@ -145,6 +148,14 @@ public class GameCommonService {
         }
 
         figureFrom.move(cellTo,true);
+        game.setBoard(board.getShortNames());
+        Cell passantCell = board.getPassantCell();
+
+        if (passantCell == null) game.setPassantCell(null);
+            else game.setPassantCell(new PassantCell(passantCell.getX(), passantCell.getY()));
+
+        game.setPrevStep(board.getPrevStep());
+
         game.setActive(game.getActive() == Color.WHITE ? Color.BLACK : Color.WHITE);
 
         String oppositeToken = getOppositeToken(game, token);
@@ -161,6 +172,7 @@ public class GameCommonService {
         if (board.isCheckMate(game.getActive())) {
             gameInfo.setStatus(GameStatus.FINISHED);
             gameInfo.setDetail(game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE);
+            gameInfoService.save(gameInfo);
 
             GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
                     .detail(gameInfo.getDetail())
@@ -172,6 +184,7 @@ public class GameCommonService {
         } else if (board.isDraw(game.getActive())) {
             gameInfo.setStatus(GameStatus.FINISHED);
             gameInfo.setDetail(GameResult.DRAW);
+            gameInfoService.save(gameInfo);
 
             GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
                     .detail(gameInfo.getDetail())
@@ -181,7 +194,6 @@ public class GameCommonService {
             notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
         }
 
-        // TODO GameInfo change state (save to GameRedis and Game work?)
         saveGame(game);
 
         return GameInfoResponse.builder()
@@ -202,6 +214,7 @@ public class GameCommonService {
 
         gameInfo.setStatus(GameStatus.FINISHED);
         gameInfo.setDetail(jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK);
+        gameInfoService.save(gameInfo);
         saveGame(game);
 
         GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()

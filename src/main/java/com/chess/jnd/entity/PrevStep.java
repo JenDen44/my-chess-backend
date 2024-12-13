@@ -1,6 +1,6 @@
 package com.chess.jnd.entity;
 
-import com.chess.jnd.entity.figures.Figure;
+import com.chess.jnd.entity.figures.ShortFigureName;
 import lombok.*;
 
 @Getter
@@ -9,12 +9,16 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class PrevStep {
-    private Cell fromCell;
 
-    private Cell toCell;
+    private int fromX;
 
-    private Figure fromFigure;
+    private int fromY;
 
-    private Figure toFigure;
+    private int toX;
 
+    private int toY;
+
+    private ShortFigureName fromFigure;
+
+    private ShortFigureName toFigure;
 }
