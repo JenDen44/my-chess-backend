@@ -43,4 +43,16 @@ public class Game {
         this.board = board;
         this.active = Color.WHITE;
     }
+
+    @Override
+    public String toString() {
+        return "Game{" +
+                "id=" + id +
+                ", gameInfo=" + gameInfo +
+                ", board='" + board + '\'' +
+                ", active=" + active +
+                ", passantCell='" + passantCell + '\'' +
+                ", prevStep='" + prevStep + '\'' +
+                '}';
+    }
 }

@@ -86,13 +86,23 @@ public class Cell {
         return false;
     }
 
-    public void setFigure(Figure figure) {
+    public void setFigureForMove(Figure figure) {
         this.figure = figure;
 
         if (this.figure != null) {
             this.figure.setCell(this);
             this.figure.setBoard(this.getBoard());
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Cell{" +
+                "x=" + x +
+                ", y=" + y +
+                ", color=" + color +
+                ", figure=" + figure +
+                '}';
     }
 }
 

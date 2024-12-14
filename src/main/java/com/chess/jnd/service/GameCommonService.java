@@ -11,10 +11,12 @@ import com.chess.jnd.utils.GameToRedisGameMapperImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class GameCommonService {
 
     private final GameRedisService gameRedisService;
@@ -38,17 +40,22 @@ public class GameCommonService {
         this.gameInfoMapper = gameInfoMapper;
     }
 
-    public GameRedis saveGame(GameRedis game) throws JsonProcessingException {
+    public GameRedis saveGame(GameRedis game) {
         gameService.save(gameMapper.gameRedisToGame(game));
 
         return gameRedisService.save(game);
     }
 
-    public GameRedis findGameById(Integer gameId) throws JsonProcessingException {
+    public GameRedis findGameById(Integer gameId) {
         GameRedis game = gameRedisService.get(gameId);
+
+        log.debug("game from redis {}", game);
 
         if (game == null) {
             Game gameFromDB = gameService.get(gameId);
+
+            log.debug("game from db {}", gameFromDB);
+
             game = gameRedisService.save(gameMapper.gameToGameRedis(gameFromDB));
         }
 
@@ -73,7 +80,7 @@ public class GameCommonService {
                 {null, null, null, null, null, null, null, null },
                 {null, null, null, null, null, null, null, null },
                 { ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN, ShortFigureName.WHITE_PAWN },
-                { ShortFigureName.WHITE_ROOK, ShortFigureName.WHITE_KNIGHT, ShortFigureName.WHITE_BISHOP, ShortFigureName.WHITE_KING, ShortFigureName.WHITE_KING, ShortFigureName.WHITE_BISHOP, ShortFigureName.WHITE_KNIGHT, ShortFigureName.WHITE_ROOK },
+                { ShortFigureName.WHITE_ROOK, ShortFigureName.WHITE_KNIGHT, ShortFigureName.WHITE_BISHOP, ShortFigureName.WHITE_QUEEN, ShortFigureName.WHITE_KING, ShortFigureName.WHITE_BISHOP, ShortFigureName.WHITE_KNIGHT, ShortFigureName.WHITE_ROOK },
         };
         return shortNames;
     }
@@ -81,6 +88,9 @@ public class GameCommonService {
     public GameResponse createGame(CreateGameRequest gameRequest) throws JsonProcessingException {
         ShortFigureName[][] shortFigureNames = initBoard();
         String board  = mapper.writeValueAsString(shortFigureNames);
+
+        log.info("newly created board {}", board);
+
         Game game = new Game(board);
 
         Game savedGameToDB = gameService.save(game);
@@ -92,6 +102,8 @@ public class GameCommonService {
 
         savedGameToDB = gameService.save(game);
         GameRedis gameRedis = gameRedisService.save(gameMapper.gameToGameRedis(savedGameToDB));
+
+        log.debug("newly created game mapped to redis {}", gameRedis );
 
         return GameResponse.builder()
                 .info(gameInfoMapper.gameInfoToGameInfoResponse(gameRedis.getGameInfo()))
@@ -106,6 +118,8 @@ public class GameCommonService {
     public GameResponse getCurrentGame(HttpServletRequest request) throws JsonProcessingException {
         String token = jwtService.resolveToken(request);
         GameRedis game = findGameByToken(token);
+
+        log.debug("current game by token {}", game);
 
         return GameResponse.builder()
                 .info(gameInfoMapper.gameInfoToGameInfoResponse(game.getGameInfo()))
@@ -125,31 +139,42 @@ public class GameCommonService {
         String token = jwtService.resolveToken(request);
         GameRedis game = findGameByToken(token);
 
+        log.info("one player requested move for game {}", game);
+
         if (game.getGameInfo().getStatus().equals(GameStatus.FINISHED)) {
+            log.error("game is finished the move can't be performed");
             throw new GameWrongDataException("The game is already finished");
         }
 
         Board board = new Board(game.getBoard(), game.getPassantCell(), game.getPrevStep());
         Cell cellFrom = board.getCell(moveRequest.getFromX(), moveRequest.getFromY());
         Cell cellTo = board.getCell(moveRequest.getToX(), moveRequest.getToY());
+
+        log.debug("cell to {}, cell from {} ", cellTo, cellFrom);
+
         Figure figureFrom = cellFrom.getFigure();
         GameInfo gameInfo = game.getGameInfo();
 
         if (figureFrom == null) {
+            log.error("Figure doesn't exist in cell from");
             throw new GameNotFoundException("Figure doesn't exist in cell from");
         }
 
         if (!figureFrom.getColor().equals(game.getActive())) {
+            log.error("he cell from color should be {}", game.getActive().getColor());
             throw new GameWrongDataException("The cell from color should be " + game.getActive().getColor());
         }
 
         if (!figureFrom.canMove(cellTo)) {
+            log.error("The figure " + figureFrom + " can't move to cell " + cellTo);
             throw new GameWrongDataException("The figure " + figureFrom + " can't move to cell " + cellTo);
         }
 
         figureFrom.move(cellTo,true);
         game.setBoard(board.getShortNames());
         Cell passantCell = board.getPassantCell();
+
+        log.debug("passantCell {}", passantCell);
 
         if (passantCell == null) game.setPassantCell(null);
             else game.setPassantCell(new PassantCell(passantCell.getX(), passantCell.getY()));
@@ -167,6 +192,8 @@ public class GameCommonService {
                 .toY(moveRequest.getToY())
                 .build();
 
+        log.debug("notification for move {}", moveNotify);
+
         notificationService.sendNotificationForMove(moveNotify, oppositeToken);
 
         if (board.isCheckMate(game.getActive())) {
@@ -174,10 +201,14 @@ public class GameCommonService {
             gameInfo.setDetail(game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE);
             gameInfoService.save(gameInfo);
 
+            log.debug("Game is finished won {}", gameInfo.getDetail());
+
             GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
                     .detail(gameInfo.getDetail())
                     .status(gameInfo.getStatus())
                     .build();
+
+            log.debug("notification for status {}", gameStatusNotify);
 
             notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
 
@@ -186,10 +217,14 @@ public class GameCommonService {
             gameInfo.setDetail(GameResult.DRAW);
             gameInfoService.save(gameInfo);
 
+            log.debug("Game is finished, status {}", gameInfo.getDetail());
+
             GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
                     .detail(gameInfo.getDetail())
                     .status(gameInfo.getStatus())
                     .build();
+
+            log.debug("notification for status {}", gameStatusNotify);
 
             notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
         }
@@ -208,7 +243,10 @@ public class GameCommonService {
         String oppositeToken = getOppositeToken(game, token);
         GameInfo gameInfo = game.getGameInfo();
 
+        log.debug("one player gave up in the game {}", game);
+
         if (gameInfo.getStatus().equals(GameStatus.FINISHED)) {
+            log.error("The game is already finished");
             throw new GameWrongDataException("The game is already finished");
         }
 
@@ -221,6 +259,8 @@ public class GameCommonService {
                 .detail(gameInfo.getDetail())
                 .status(gameInfo.getStatus())
                 .build();
+
+        log.debug("notification for status {}", gameStatusNotify);
 
         notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
 

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+
 @Data
 @NoArgsConstructor
 @Builder
@@ -27,4 +29,15 @@ public class GameRedis {
 
     private PrevStep prevStep;
 
+    @Override
+    public String toString() {
+        return "GameRedis{" +
+                "id=" + id +
+                ", gameInfo=" + gameInfo +
+                ", board=" + Arrays.toString(board) +
+                ", active=" + active +
+                ", passantCell=" + passantCell +
+                ", prevStep=" + prevStep +
+                '}';
+    }
 }

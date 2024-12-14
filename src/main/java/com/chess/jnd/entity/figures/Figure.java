@@ -79,10 +79,9 @@ public class Figure {
 
     public void move(Cell cell, boolean isResetPassant) {
         this.board.setPrevStep(this.cell, cell);
-        this.cell.setFigure(null);
+        this.cell.setFigureForMove(null);
         this.cell = cell;
-        this.cell.setFigure(this);
-        this.getBoard().setPassantCell(null);
+        this.cell.setFigureForMove(this);
 
         if (isResetPassant) {
             this.getBoard().setPassantCell(null);
@@ -91,5 +90,13 @@ public class Figure {
 
     public boolean checkCorrectMove(Cell cell) {
         return cell.getFigure() == null || cell.getFigure().getColor() != this.getColor();
+    }
+
+    @Override
+    public String toString() {
+        return "Figure{" +
+                "name=" + name +
+                ", color=" + color +
+                '}';
     }
 }
