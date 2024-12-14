@@ -26,4 +26,11 @@ public enum ShortFigureName {
     public Character getShortName() {
         return shortName;
     }
+
+    @Override
+    public String toString() {
+        return "ShortFigureName{" +
+                "shortName=" + shortName +
+                '}';
+    }
 }
