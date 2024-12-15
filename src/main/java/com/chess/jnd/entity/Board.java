@@ -4,19 +4,28 @@ import com.chess.jnd.entity.figures.Figure;
 import com.chess.jnd.entity.figures.FigureFactory;
 import com.chess.jnd.entity.figures.FigureName;
 import com.chess.jnd.entity.figures.ShortFigureName;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.SneakyThrows;
 
 @Data
 public class Board {
+    private ObjectMapper mapper = new ObjectMapper();
+
     private FigureFactory figureFactory;
+
     private Cell[][] cells = new Cell[8][8];
+
     private Cell passantCell;
+
     private PrevStep prevStep;
 
     public Board(ShortFigureName[][] shortNames, PassantCell cell, PrevStep prevStep) {
         this.figureFactory = new FigureFactory();
         this.init();
         this.addFigures(shortNames);
+
+        this.prevStep = prevStep;
 
         if (cell != null) {
             this.setPassantCell(this.getCell(cell.getX(), cell.getY()));
@@ -43,8 +52,7 @@ public class Board {
                 var shortName = shortNames[y][x];
 
                 if (shortName != null) {
-                    Figure newFigure = this.figureFactory.createByShortName(shortName, this.getCell(x, y));
-                    newFigure.setBoard(this);
+                    this.figureFactory.createByShortName(shortName, this.getCell(x, y));
                 }
             }
         }
@@ -88,12 +96,11 @@ public class Board {
     public boolean checkIfMove(Figure figure, Cell toCell) {
         figure.move(toCell, false);
 
-        Figure king = this.findFigure(FigureName.KING, figure.getColor());
-        boolean canBeEaten = this.checkCanBeEaten(king);
+        boolean isCheck = isCheck(figure.getColor());
 
         this.goBack();
 
-        return canBeEaten;
+        return isCheck;
     }
 
     public  Figure findFigure(FigureName name, Color color) {
@@ -102,9 +109,7 @@ public class Board {
                 Cell cell = this.getCell(x, y);
                 Figure figureFromCell = cell.getFigure();
 
-                if (figureFromCell == null) continue;
-
-                if (figureFromCell.getName() == name && figureFromCell.getColor() == color) {
+                if (figureFromCell != null && figureFromCell.getName() == name && figureFromCell.getColor() == color) {
                     return figureFromCell;
                 }
             }
@@ -125,9 +130,11 @@ public class Board {
                 Cell cell = this.getCell(x, y);
                 Figure figureFromCell = cell.getFigure();
 
-                if (figureFromCell == null) continue;
-
-                if (figureFromCell.getColor() == oppositeColor && figureFromCell.checkCorrectMove(figure.getCell())) {
+                if (
+                    figureFromCell != null &&
+                    figureFromCell.getColor() == oppositeColor &&
+                    figureFromCell.checkCorrectMove(figure.getCell())
+                ) {
                     return true;
                 }
             }
@@ -147,13 +154,15 @@ public class Board {
         ShortFigureName toFigure = prevStep.getToFigure();
 
         if (fromCell != null && fromFigure != null) {
-            Figure newFigure = this.figureFactory.createByShortName(fromFigure, fromCell);
-            newFigure.setBoard(this);
+            this.figureFactory.createByShortName(fromFigure, fromCell);
+        } else if (fromCell != null) {
+            fromCell.setFigure(null);
         }
 
         if (toCell != null && toFigure != null) {
-            Figure newFigure = this.figureFactory.createByShortName(toFigure, toCell);
-            newFigure.setBoard(this);
+            this.figureFactory.createByShortName(toFigure, toCell);
+        } else if (toCell != null) {
+            toCell.setFigure(null);
         }
     }
 
@@ -166,7 +175,8 @@ public class Board {
     public boolean canMove(Color color) {
         for (int y = 0; y < this.cells.length; y++) {
             for (int x = 0; x < this.cells[y].length; x++) {
-                Figure figure = this.getCell(x, y).getFigure();
+                Cell figureCell = this.getCell(x, y);
+                Figure figure = figureCell.getFigure();
 
                 if (figure == null || !figure.getColor().equals(color)) continue;
 
@@ -174,7 +184,9 @@ public class Board {
                     for (int cX = 0; cX < this.cells[cY].length; cX++) {
                         Cell cell = this.getCell(cX, cY);
 
-                        if (figure.canMove(cell)) return true;
+                        if (figureCell.getFigure().canMove(cell)) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -197,5 +209,14 @@ public class Board {
         }
 
         return !this.canMove(color);
+    }
+
+    @SneakyThrows
+    @Override
+    public String toString() {
+        return "Board{" +
+                "cells=" + mapper.writeValueAsString((this.getShortNames())) +
+                "prevStep=" + mapper.writeValueAsString((this.getPrevStep())) +
+                '}';
     }
 }

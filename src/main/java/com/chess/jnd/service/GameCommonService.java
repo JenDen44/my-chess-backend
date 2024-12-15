@@ -170,6 +170,8 @@ public class GameCommonService {
             throw new GameWrongDataException("The figure " + figureFrom + " can't move to cell " + cellTo);
         }
 
+        figureFrom = cellFrom.getFigure();
+
         figureFrom.move(cellTo,true);
         game.setBoard(board.getShortNames());
         Cell passantCell = board.getPassantCell();
