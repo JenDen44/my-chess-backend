@@ -14,6 +14,7 @@ public class Figure {
     private Color color;
 
     private Cell cell;
+
     private Board board;
 
     public Figure(FigureName name, Color color, Cell cell) {
@@ -21,11 +22,11 @@ public class Figure {
         this.color = color;
         this.cell = cell;
         this.cell.setFigure(this);
+        this.board = this.cell.getBoard();
     }
 
      public ShortFigureName getShortName() {
         if (this.color == Color.WHITE) {
-
             switch (this.name) {
                 case FigureName.KING:
                     return ShortFigureName.WHITE_KING;
@@ -59,13 +60,9 @@ public class Figure {
     }
 
     public boolean canMove(Cell cell) {
-        if (this.getCell().compare(cell)) return false;
-
         Figure figure = cell.getFigure();
 
-        if (figure == null) return true;
-
-        if (figure.getColor() == this.getColor() && figure.getName() == FigureName.KING) {
+        if (figure != null && figure.getName() == FigureName.KING) {
             return false;
         }
 
@@ -79,17 +76,17 @@ public class Figure {
 
     public void move(Cell cell, boolean isResetPassant) {
         this.board.setPrevStep(this.cell, cell);
-        this.cell.setFigureForMove(null);
+        this.cell.setFigure(null);
         this.cell = cell;
-        this.cell.setFigureForMove(this);
+        this.cell.setFigure(this);
 
         if (isResetPassant) {
-            this.getBoard().setPassantCell(null);
+            this.board.setPassantCell(null);
         }
     }
 
     public boolean checkCorrectMove(Cell cell) {
-        return cell.getFigure() == null || cell.getFigure().getColor() != this.getColor();
+        return cell.getFigure() == null || cell.getFigure().getColor() != this.color;
     }
 
     @Override

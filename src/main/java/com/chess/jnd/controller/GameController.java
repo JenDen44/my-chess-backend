@@ -1,9 +1,6 @@
 package com.chess.jnd.controller;
 
-import com.chess.jnd.entity.CreateGameRequest;
-import com.chess.jnd.entity.GameInfoResponse;
-import com.chess.jnd.entity.GameResponse;
-import com.chess.jnd.entity.MoveRequest;
+import com.chess.jnd.entity.*;
 import com.chess.jnd.service.GameCommonService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -115,5 +113,49 @@ public class GameController {
     @PostMapping("/game/give-up")
     public ResponseEntity<GameInfoResponse> giveUp(HttpServletRequest request) throws JsonProcessingException {
         return  ResponseEntity.ok(gameService.giveUp(request));
+    }
+
+    @Operation(
+            description = "Endpoint to give up",
+            summary = "If you need give up, please use this endpoint",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+
+                    @ApiResponse(
+                            description = "Not found",
+                            responseCode = "404"
+                    )
+            }
+    )
+    @PostMapping("/game/draw")
+    public ResponseEntity offerDraw(HttpServletRequest request) throws JsonProcessingException {
+        gameService.offerDraw(request);
+
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @Operation(
+            description = "Endpoint to give up",
+            summary = "If you need give up, please use this endpoint",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+
+                    @ApiResponse(
+                            description = "Not found",
+                            responseCode = "404"
+                    )
+            }
+    )
+    @PostMapping("/game/draw/{answer}")
+    public ResponseEntity draw(HttpServletRequest request, @PathVariable boolean answer) throws JsonProcessingException {
+        gameService.draw(request, answer);
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 }
