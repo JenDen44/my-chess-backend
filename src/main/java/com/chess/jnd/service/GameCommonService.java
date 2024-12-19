@@ -281,14 +281,11 @@ public class GameCommonService {
 
         log.debug("player with color {} is agreed for draw ? {}", game.getActive(), answer);
 
+        notificationService.sendNotificationForDrawResponse(answer, oppositeToken);
+
         if (answer) {
-            gameInfo.setStatus(GameStatus.FINISHED);
-            gameInfo.setDetail(GameResult.DRAW);
-            gameInfoService.save(gameInfo);
+            changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, token, oppositeToken);
             saveGame(game);
-            notificationService.sendNotificationForDrawResponse(true, oppositeToken);
         }
-
-
     }
 }
