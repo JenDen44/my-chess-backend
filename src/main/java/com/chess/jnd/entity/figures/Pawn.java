@@ -4,7 +4,6 @@ import com.chess.jnd.entity.Cell;
 import com.chess.jnd.entity.Color;
 
 public class Pawn extends Figure {
-    private boolean isFirstStep = true;
     public Pawn(Color color, Cell cell) {
         super(FigureName.PAWN, color, cell);
     }
@@ -35,9 +34,9 @@ public class Pawn extends Figure {
         }
 
         if (
-                this.isFirstStep &&
-                        dy == 2 * currentDY &&
-                        this.getBoard().getCell(this.getCell().getX(), this.getCell().getY() + currentDY).isEmpty()
+                this.isFirstStep() &&
+                dy == 2 * currentDY &&
+                this.getBoard().getCell(this.getCell().getX(), this.getCell().getY() + currentDY).isEmpty()
         ) {
             return true;
         }
@@ -46,8 +45,7 @@ public class Pawn extends Figure {
     }
 
     public void move(Cell cell) {
-        if (this.isFirstStep) {
-            this.isFirstStep = false;
+        if (this.isFirstStep()) {
             int dx = cell.getX() - this.getCell().getX();
             int dy = cell.getY() - this.getCell().getY();
             int currentDY = this.getColor() == Color.BLACK ? 1 : -1;
@@ -88,5 +86,4 @@ public class Pawn extends Figure {
 
         return this.getCell().getY() == startY;
     }
-
 }

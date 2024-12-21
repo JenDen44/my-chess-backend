@@ -170,6 +170,8 @@ public class GameCommonService {
             throw new GameWrongDataException("The figure " + figureFrom + " can't move to cell " + cellTo);
         }
 
+        figureFrom = cellFrom.getFigure();
+
         figureFrom.move(cellTo,true);
         game.setBoard(board.getShortNames());
         Cell passantCell = board.getPassantCell();
@@ -184,6 +186,7 @@ public class GameCommonService {
         game.setActive(game.getActive() == Color.WHITE ? Color.BLACK : Color.WHITE);
 
         String oppositeToken = getOppositeToken(game, token);
+
         MoveNotify moveNotify = MoveNotify.builder()
                 .activeColor(game.getActive())
                 .fromY(moveRequest.getFromY())
@@ -197,36 +200,16 @@ public class GameCommonService {
         notificationService.sendNotificationForMove(moveNotify, oppositeToken);
 
         if (board.isCheckMate(game.getActive())) {
-            gameInfo.setStatus(GameStatus.FINISHED);
-            gameInfo.setDetail(game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE);
-            gameInfoService.save(gameInfo);
+            GameResult result = game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE;
 
             log.debug("Game is finished won {}", gameInfo.getDetail());
 
-            GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
-                    .detail(gameInfo.getDetail())
-                    .status(gameInfo.getStatus())
-                    .build();
-
-            log.debug("notification for status {}", gameStatusNotify);
-
-            notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
+            changeGameStatusAndNotifyPlayers(gameInfo, result, GameStatus.FINISHED, oppositeToken, token);
 
         } else if (board.isDraw(game.getActive())) {
-            gameInfo.setStatus(GameStatus.FINISHED);
-            gameInfo.setDetail(GameResult.DRAW);
-            gameInfoService.save(gameInfo);
+            log.debug("Game is finished status {}", gameInfo.getDetail());
 
-            log.debug("Game is finished, status {}", gameInfo.getDetail());
-
-            GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
-                    .detail(gameInfo.getDetail())
-                    .status(gameInfo.getStatus())
-                    .build();
-
-            log.debug("notification for status {}", gameStatusNotify);
-
-            notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
+            changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, oppositeToken, token);
         }
 
         saveGame(game);
@@ -250,10 +233,23 @@ public class GameCommonService {
             throw new GameWrongDataException("The game is already finished");
         }
 
-        gameInfo.setStatus(GameStatus.FINISHED);
-        gameInfo.setDetail(jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK);
-        gameInfoService.save(gameInfo);
+        GameResult result = jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK;
+
+        changeGameStatusAndNotifyPlayers(gameInfo, result, GameStatus.FINISHED, oppositeToken, token);
+
         saveGame(game);
+
+        return GameInfoResponse.builder()
+                .detail(gameInfo.getDetail())
+                .status(gameInfo.getStatus())
+                .build();
+    }
+
+    public void changeGameStatusAndNotifyPlayers(GameInfo gameInfo, GameResult result, GameStatus status, String... tokens) {
+        gameInfo.setDetail(result);
+        gameInfo.setStatus(status);
+
+        gameInfoService.save(gameInfo);
 
         GameStatusNotify gameStatusNotify =  GameStatusNotify.builder()
                 .detail(gameInfo.getDetail())
@@ -262,11 +258,34 @@ public class GameCommonService {
 
         log.debug("notification for status {}", gameStatusNotify);
 
-        notificationService.sendNotificationForGameStatus(gameStatusNotify, oppositeToken);
+        notificationService.sendNotificationForGameStatus(gameStatusNotify, tokens);
 
-        return GameInfoResponse.builder()
-                .detail(gameInfo.getDetail())
-                .status(gameInfo.getStatus())
-                .build();
+
+    }
+
+    public void offerDraw(HttpServletRequest request) throws JsonProcessingException {
+        String token = jwtService.resolveToken(request);
+        GameRedis game = findGameByToken(token);
+        String oppositeToken = getOppositeToken(game, token);
+
+        log.debug("one player with color {} offered draw", game.getActive());
+
+        notificationService.sendNotificationForDraw(oppositeToken);
+    }
+
+    public void draw(HttpServletRequest request, boolean answer) throws JsonProcessingException {
+        String token = jwtService.resolveToken(request);
+        GameRedis game = findGameByToken(token);
+        String oppositeToken = getOppositeToken(game, token);
+        GameInfo gameInfo = game.getGameInfo();
+
+        log.debug("player with color {} is agreed for draw ? {}", game.getActive(), answer);
+
+        notificationService.sendNotificationForDrawResponse(answer, oppositeToken);
+
+        if (answer) {
+            changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, token, oppositeToken);
+            saveGame(game);
+        }
     }
 }
