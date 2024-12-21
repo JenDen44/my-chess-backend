@@ -266,6 +266,12 @@ public class GameCommonService {
     public void offerDraw(HttpServletRequest request) throws JsonProcessingException {
         String token = jwtService.resolveToken(request);
         GameRedis game = findGameByToken(token);
+
+        if (game.getGameInfo().getStatus().equals(GameStatus.FINISHED)) {
+            log.error("The game is already finished");
+            throw new GameWrongDataException("The game is already finished");
+        }
+
         String oppositeToken = getOppositeToken(game, token);
 
         log.debug("one player with color {} offered draw", game.getActive());
@@ -276,8 +282,14 @@ public class GameCommonService {
     public void draw(HttpServletRequest request, boolean answer) throws JsonProcessingException {
         String token = jwtService.resolveToken(request);
         GameRedis game = findGameByToken(token);
+
         String oppositeToken = getOppositeToken(game, token);
         GameInfo gameInfo = game.getGameInfo();
+
+        if (gameInfo.getStatus().equals(GameStatus.FINISHED)) {
+            log.error("The game is already finished");
+            throw new GameWrongDataException("The game is already finished");
+        }
 
         log.debug("player with color {} is agreed for draw ? {}", game.getActive(), answer);
 
