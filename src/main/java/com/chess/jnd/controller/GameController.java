@@ -1,10 +1,15 @@
 package com.chess.jnd.controller;
 
 import com.chess.jnd.entity.*;
+import com.chess.jnd.error_handling.ApiErrorNotFound;
+import com.chess.jnd.error_handling.ApiErrorValidation;
 import com.chess.jnd.service.GameCommonService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,112 +29,75 @@ public class GameController {
         this.gameService = gameService;
     }
 
-    @Operation(
-            description = "Endpoint to create new game",
-            summary = "If you need to start new game, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Validation error",
-                            responseCode = "422"
-                    )
-            }
-    )
+    @Operation(summary = "Create new game")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Game is created",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GameResponse.class)) }),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorValidation.class))) })
     @PostMapping("/start")
     public ResponseEntity<GameResponse> createNewGame(@RequestBody CreateGameRequest gameRequest) throws JsonProcessingException {
        return ResponseEntity.ok(gameService.createGame(gameRequest));
     }
 
-    @Operation(
-            description = "Endpoint to get current game",
-            summary = "If you need to to get current game, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Not found",
-                            responseCode = "404"
-                    )
-            }
-    )
+    @Operation(summary = "Get current game")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the current Game",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GameResponse.class)) }),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @GetMapping("/game")
     public ResponseEntity<GameResponse> currentGame(HttpServletRequest request) throws JsonProcessingException {
         return ResponseEntity.ok(gameService.getCurrentGame(request));
     }
 
-    @Operation(
-            description = "Endpoint to perform move on board",
-            summary = "If you need to perform move on board, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Validation error",
-                            responseCode = "422"
-                    ),
-
-                    @ApiResponse(
-                            description = "Not found",
-                            responseCode = "404"
-                    )
-            }
-    )
+    @Operation(summary = "Perform Move")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Move was performed",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GameInfoResponse.class)) }),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorValidation.class))),
+            @ApiResponse(responseCode = "404", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/move")
     public ResponseEntity<GameInfoResponse> move(HttpServletRequest request,
                                                  @RequestBody MoveRequest moveRequest) throws JsonProcessingException {
         return ResponseEntity.ok(gameService.move(request, moveRequest));
     }
 
-    @Operation(
-            description = "Endpoint to give up",
-            summary = "If you need give up, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Validation error",
-                            responseCode = "422"
-                    ),
-
-                    @ApiResponse(
-                            description = "Not found",
-                            responseCode = "404"
-                    )
-            }
-    )
+    @Operation(summary = "Give Up")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The player gave up, Game is over",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GameInfoResponse.class)) }),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorValidation.class))),
+            @ApiResponse(responseCode = "404", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/give-up")
     public ResponseEntity<GameInfoResponse> giveUp(HttpServletRequest request) throws JsonProcessingException {
         return  ResponseEntity.ok(gameService.giveUp(request));
     }
 
-    @Operation(
-            description = "Endpoint to give up",
-            summary = "If you need give up, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Not found",
-                            responseCode = "404"
-                    )
-            }
-    )
+    @Operation(summary = "Offer Draw")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The player offered draw",
+                    content = @Content),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorValidation.class))),
+            @ApiResponse(responseCode = "404", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/draw")
     public ResponseEntity offerDraw(HttpServletRequest request) throws JsonProcessingException {
         gameService.offerDraw(request);
@@ -137,21 +105,16 @@ public class GameController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @Operation(
-            description = "Endpoint to give up",
-            summary = "If you need give up, please use this endpoint",
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            description = "Not found",
-                            responseCode = "404"
-                    )
-            }
-    )
+    @Operation(summary = "Draw answer")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The player sent answer for draw",
+                    content = @Content),
+            @ApiResponse(responseCode = "422", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorValidation.class))),
+            @ApiResponse(responseCode = "404", description = "Validation Error",
+                    content = @Content (mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/draw/{answer}")
     public ResponseEntity draw(HttpServletRequest request, @PathVariable boolean answer) throws JsonProcessingException {
         gameService.draw(request, answer);
