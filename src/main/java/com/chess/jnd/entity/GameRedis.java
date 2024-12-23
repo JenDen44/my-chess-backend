@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Data
@@ -28,6 +29,8 @@ public class GameRedis {
     private PassantCell passantCell;
 
     private PrevStep prevStep;
+
+    private LocalDateTime date;
 
     @Override
     public String toString() {

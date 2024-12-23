@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Data
 @Entity
@@ -38,10 +40,13 @@ public class Game {
 
     private String prevStep;
 
+    private LocalDateTime date;
+
     public Game(String board) {
         this.gameInfo = new GameInfo(GameStatus.IN_PROCESS);
         this.board = board;
         this.active = Color.WHITE;
+        this.date = LocalDateTime.now();
     }
 
     @Override
