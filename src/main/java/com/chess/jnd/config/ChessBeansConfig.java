@@ -11,6 +11,7 @@ public class ChessBeansConfig {
     @Bean
     public ObjectMapper mapper() {
         ObjectMapper mapper = new ObjectMapper();
+
         mapper.registerModule(new JavaTimeModule());
         return mapper;
     }

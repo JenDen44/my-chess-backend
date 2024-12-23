@@ -327,13 +327,14 @@ public class GameCommonService {
             Timer timer = new Timer();
             task = new TimerTask() {
                 public void run() {
-                    GameRedis game = null;
                     try {
-                        game = findGameByToken(token);
+                        GameRedis game = findGameByToken(token);
                         String oppositeToken = getOppositeToken(game, token);
                         GameInfo gameInfo = game.getGameInfo();
                         GameResult result = jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK;
+
                         if (gameInfo.getStatus().equals(GameStatus.FINISHED)) return;
+
                         changeGameStatusAndNotifyPlayers(game.getGameInfo(), result, GameStatus.FINISHED, token, oppositeToken);
                         saveGame(game);
                     } catch (JsonProcessingException e) {
