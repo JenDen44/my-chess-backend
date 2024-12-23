@@ -15,6 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Timer;
+import java.util.TimerTask;
+
 @Service
 @Slf4j
 public class GameCommonService {
@@ -27,6 +31,7 @@ public class GameCommonService {
     private final ObjectMapper mapper;
     private final GameNotificationService notificationService;
     private final GameInfoGameInfoResponseMapper gameInfoMapper;
+    private TimerTask task = null;
 
     @Autowired
     public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper) {
@@ -103,6 +108,11 @@ public class GameCommonService {
         savedGameToDB = gameService.save(game);
         GameRedis gameRedis = gameRedisService.save(gameMapper.gameToGameRedis(savedGameToDB));
 
+        Color currentColor = gameRequest.getColor();
+        String currentToken = currentColor.equals(Color.WHITE) ? whiteToken : blackToken;
+
+        finishGameForTimer(currentToken, true);
+
         log.debug("newly created game mapped to redis {}", gameRedis );
 
         return GameResponse.builder()
@@ -112,6 +122,7 @@ public class GameCommonService {
                 .board(gameRedis.getBoard())
                 .active(gameRedis.getActive())
                 .currentColor(gameRequest.getColor())
+                .date(gameRedis.getDate())
                 .build();
     }
 
@@ -128,6 +139,7 @@ public class GameCommonService {
                 .board(game.getBoard())
                 .active(game.getActive())
                 .currentColor(jwtService.getColor(token))
+                .date(game.getDate())
                 .build();
     }
 
@@ -187,32 +199,39 @@ public class GameCommonService {
 
         String oppositeToken = getOppositeToken(game, token);
 
-        MoveNotify moveNotify = MoveNotify.builder()
-                .activeColor(game.getActive())
-                .fromY(moveRequest.getFromY())
-                .fromX(moveRequest.getFromX())
-                .toX(moveRequest.getToX())
-                .toY(moveRequest.getToY())
-                .build();
+        boolean isCheckMate = board.isCheckMate(game.getActive());
+        boolean isDraw = board.isDraw(game.getActive());
 
-        log.debug("notification for move {}", moveNotify);
-
-        notificationService.sendNotificationForMove(moveNotify, oppositeToken);
-
-        if (board.isCheckMate(game.getActive())) {
+        if (isCheckMate) {
             GameResult result = game.getActive() == Color.WHITE ? GameResult.BLACK : GameResult.WHITE;
 
             log.debug("Game is finished won {}", gameInfo.getDetail());
 
             changeGameStatusAndNotifyPlayers(gameInfo, result, GameStatus.FINISHED, oppositeToken, token);
 
-        } else if (board.isDraw(game.getActive())) {
+        } else if (isDraw) {
             log.debug("Game is finished status {}", gameInfo.getDetail());
 
             changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, oppositeToken, token);
         }
 
+        game.setDate(LocalDateTime.now());
         saveGame(game);
+
+        MoveNotify moveNotify = MoveNotify.builder()
+                .activeColor(game.getActive())
+                .fromY(moveRequest.getFromY())
+                .fromX(moveRequest.getFromX())
+                .toX(moveRequest.getToX())
+                .toY(moveRequest.getToY())
+                .date(game.getDate())
+                .build();
+
+        log.debug("notification for move {}", moveNotify);
+
+        notificationService.sendNotificationForMove(moveNotify, oppositeToken);
+
+        finishGameForTimer(oppositeToken, !isCheckMate && !isDraw);
 
         return GameInfoResponse.builder()
                 .detail(gameInfo.getDetail())
@@ -298,6 +317,33 @@ public class GameCommonService {
         if (answer) {
             changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, token, oppositeToken);
             saveGame(game);
+        }
+    }
+
+    public void finishGameForTimer(String token, boolean newTimer) {
+        if (task != null) task.cancel();
+
+        if (newTimer) {
+            Timer timer = new Timer();
+            task = new TimerTask() {
+                public void run() {
+                    try {
+                        GameRedis game = findGameByToken(token);
+                        String oppositeToken = getOppositeToken(game, token);
+                        GameInfo gameInfo = game.getGameInfo();
+                        GameResult result = jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK;
+
+                        if (gameInfo.getStatus().equals(GameStatus.FINISHED)) return;
+
+                        changeGameStatusAndNotifyPlayers(game.getGameInfo(), result, GameStatus.FINISHED, token, oppositeToken);
+                        saveGame(game);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            timer.schedule(task, 180000);
         }
     }
 }

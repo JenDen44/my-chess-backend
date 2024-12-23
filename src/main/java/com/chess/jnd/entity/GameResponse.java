@@ -1,11 +1,13 @@
 package com.chess.jnd.entity;
 
 import com.chess.jnd.entity.figures.ShortFigureName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -24,4 +26,7 @@ public class GameResponse {
     private Color active;
 
     private Color currentColor;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime date;
 }
