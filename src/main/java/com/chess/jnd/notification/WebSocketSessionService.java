@@ -19,14 +19,16 @@ public class WebSocketSessionService {
         userSessions.remove(session);
     }
 
-    public <TData> void sendMessage(String token, TData data) {
+    public <TData> void sendMessage(TData data, String... tokens) {
         var payload = new WebSocketPayload(data);
 
-        for (Map.Entry<WebSocketSession, String> entry : userSessions.entrySet()) {
-            if (entry.getValue().equals(token)) {
-                try {
-                    entry.getKey().sendMessage(payload.toTextMessage());
-                } catch (Exception e) {
+        for (String token : tokens) {
+            for (Map.Entry<WebSocketSession, String> entry : userSessions.entrySet()) {
+                if (entry.getValue().equals(token)) {
+                    try {
+                        entry.getKey().sendMessage(payload.toTextMessage());
+                    } catch (Exception e) {
+                    }
                 }
             }
         }

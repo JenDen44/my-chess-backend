@@ -16,10 +16,18 @@ public class GameNotificationService {
     }
 
     public void sendNotificationForMove(MoveNotify moveNotify, String token) {
-        sessionService.sendMessage(token, new MoveNotification(moveNotify));
+        sessionService.sendMessage(new MoveNotification(moveNotify), token);
     }
 
-    public void sendNotificationForGameStatus(GameStatusNotify gameStatusNotify, String token) {
-        sessionService.sendMessage(token, new GameStatusChangeNotification(gameStatusNotify));
+    public void sendNotificationForGameStatus(GameStatusNotify gameStatusNotify, String... tokens) {
+        sessionService.sendMessage(new GameStatusChangeNotification(gameStatusNotify), tokens);
+    }
+
+    public void sendNotificationForDraw(String token) {
+        sessionService.sendMessage(new DrawNotificationRequest(), token);
+    }
+
+    public void sendNotificationForDrawResponse(boolean answer, String token) {
+        sessionService.sendMessage(new DrawNotificationResponse(answer), token);
     }
 }
