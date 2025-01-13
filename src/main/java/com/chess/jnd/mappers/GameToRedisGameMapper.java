@@ -1,4 +1,4 @@
-package com.chess.jnd.utils;
+package com.chess.jnd.mappers;
 
 import com.chess.jnd.entity.*;
 import com.chess.jnd.entity.figures.ShortFigureName;
@@ -55,5 +55,4 @@ public interface GameToRedisGameMapper {
     default String prevStepToString(PrevStep prevStep) throws JsonProcessingException {
         return mapper.writeValueAsString(prevStep);
     }
-
 }

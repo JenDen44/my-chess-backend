@@ -41,6 +41,8 @@ public class Game {
 
     private LocalDateTime date;
 
+    private Integer timeForMove;
+
     public Game(String board) {
         this.gameInfo = new GameInfo(GameStatus.IN_PROCESS);
         this.board = board;

@@ -2,10 +2,7 @@ package com.chess.jnd.entity;
 
 import com.chess.jnd.entity.figures.ShortFigureName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class GameResponse {
 
     private String tokenForWhitePlayer;
@@ -26,6 +24,8 @@ public class GameResponse {
     private Color active;
 
     private Color currentColor;
+
+    private Integer timeForMove;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime date;

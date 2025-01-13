@@ -6,13 +6,14 @@ import com.chess.jnd.entity.figures.ShortFigureName;
 import com.chess.jnd.error_handling.GameNotFoundException;
 import com.chess.jnd.error_handling.GameWrongDataException;
 import com.chess.jnd.notification.GameNotificationService;
-import com.chess.jnd.utils.GameInfoGameInfoResponseMapper;
-import com.chess.jnd.utils.GameToRedisGameMapperImpl;
+import com.chess.jnd.mappers.GameInfoGameInfoResponseMapper;
+import com.chess.jnd.mappers.GameToRedisGameMapperImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,9 @@ public class GameCommonService {
     private final GameNotificationService notificationService;
     private final GameInfoGameInfoResponseMapper gameInfoMapper;
     private TimerTask task = null;
+
+    @Value("${time.for.move}")
+    public Integer timeForeMove;
 
     @Autowired
     public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper) {
@@ -91,6 +95,11 @@ public class GameCommonService {
     }
 
     public GameResponse createGame(CreateGameRequest gameRequest) throws JsonProcessingException {
+
+        if (gameRequest.getTimeForMove() != null) {
+            timeForeMove = gameRequest.getTimeForMove();
+        }
+
         ShortFigureName[][] shortFigureNames = initBoard();
         String board  = mapper.writeValueAsString(shortFigureNames);
 
@@ -104,14 +113,12 @@ public class GameCommonService {
 
         savedGameToDB.setTokenForWhitePlayer(whiteToken);
         savedGameToDB.setTokenForBlackPlayer(blackToken);
+        savedGameToDB.setTimeForMove(timeForeMove);
 
         savedGameToDB = gameService.save(game);
         GameRedis gameRedis = gameRedisService.save(gameMapper.gameToGameRedis(savedGameToDB));
 
-        Color currentColor = gameRequest.getColor();
-        String currentToken = currentColor.equals(Color.WHITE) ? whiteToken : blackToken;
-
-        finishGameForTimer(currentToken, true);
+        finishGameForTimer(whiteToken, true);
 
         log.debug("newly created game mapped to redis {}", gameRedis );
 
@@ -121,6 +128,7 @@ public class GameCommonService {
                 .tokenForWhitePlayer(gameRedis.getTokenForWhitePlayer())
                 .board(gameRedis.getBoard())
                 .active(gameRedis.getActive())
+                .timeForMove(timeForeMove)
                 .currentColor(gameRequest.getColor())
                 .date(gameRedis.getDate())
                 .build();
@@ -214,7 +222,6 @@ public class GameCommonService {
 
             changeGameStatusAndNotifyPlayers(gameInfo, GameResult.DRAW, GameStatus.FINISHED, oppositeToken, token);
         }
-
         game.setDate(LocalDateTime.now());
         saveGame(game);
 
@@ -257,7 +264,6 @@ public class GameCommonService {
         changeGameStatusAndNotifyPlayers(gameInfo, result, GameStatus.FINISHED, oppositeToken, token);
 
         saveGame(game);
-
         return GameInfoResponse.builder()
                 .detail(gameInfo.getDetail())
                 .status(gameInfo.getStatus())
@@ -320,30 +326,35 @@ public class GameCommonService {
         }
     }
 
-    public void finishGameForTimer(String token, boolean newTimer) {
+    public void finishGame(String token) throws JsonProcessingException {
+        GameRedis game = findGameByToken(token);
+        String oppositeToken = getOppositeToken(game, token);
+        GameInfo gameInfo = game.getGameInfo();
+        GameResult result = jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK;
+
+        if (gameInfo.getStatus().equals(GameStatus.FINISHED)) return;
+
+        changeGameStatusAndNotifyPlayers(game.getGameInfo(), result, GameStatus.FINISHED, token, oppositeToken);
+        saveGame(game);
+    }
+
+    public void finishGameForTimer(String token, boolean newTimer) throws JsonProcessingException {
         if (task != null) task.cancel();
+        GameRedis game = findGameByToken(token);
 
         if (newTimer) {
             Timer timer = new Timer();
             task = new TimerTask() {
                 public void run() {
                     try {
-                        GameRedis game = findGameByToken(token);
-                        String oppositeToken = getOppositeToken(game, token);
-                        GameInfo gameInfo = game.getGameInfo();
-                        GameResult result = jwtService.getColor(token).equals(Color.BLACK) ? GameResult.WHITE : GameResult.BLACK;
-
-                        if (gameInfo.getStatus().equals(GameStatus.FINISHED)) return;
-
-                        changeGameStatusAndNotifyPlayers(game.getGameInfo(), result, GameStatus.FINISHED, token, oppositeToken);
-                        saveGame(game);
+                    finishGame(token);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
                 }
             };
 
-            timer.schedule(task, 180000);
+            timer.schedule(task, game.getTimeForMove());
         }
     }
 }

@@ -22,7 +22,7 @@ import java.util.Date;
 public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")
-    private String secretKey;
+    public String secretKey;
 
     private final ObjectMapper mapper;
 
@@ -64,7 +64,8 @@ public class JwtService {
                 .build();
 
         Claims claims = parser.parseSignedClaims(token).getPayload();
-        T claim = mapper.readValue((String) claims.get(claimName), tClass);
+        String claims1 = (String) claims.get(claimName);
+        T claim = mapper.readValue(claims1, tClass);
 
         return claim;
 
