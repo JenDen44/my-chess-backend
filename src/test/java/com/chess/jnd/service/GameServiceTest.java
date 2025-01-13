@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
@@ -35,7 +35,8 @@ class GameServiceTest {
 
         Game gameFromService = gameService.save(new Game());
 
-        then(gameRepo).should().save(any(Game.class));
+        verify(gameRepo).save(any(Game.class));
+
         assertThat(gameFromService).isNotNull();
     }
 
@@ -48,15 +49,21 @@ class GameServiceTest {
 
         Game gameFromService = gameService.get(1);
 
-        then(gameRepo).should().findById(anyInt());
+        verify(gameRepo).findById(anyInt());
+
         assertThat(gameFromService).isNotNull();
     }
 
     @DisplayName("Test Delete Game By ID")
     @Test
     void delete() {
+        Game game = new Game();
+
+        given(gameRepo.findById(anyInt())).willReturn(Optional.of(game));
+
         gameService.delete(1);
 
-        then(gameRepo).should().deleteById(anyInt());
+        verify(gameRepo).findById(anyInt());
+        verify(gameRepo).deleteById(anyInt());
     }
 }

@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -38,8 +37,9 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorValidation.class))) })
     @PostMapping("/start")
-    public ResponseEntity<GameResponse> createNewGame(@RequestBody CreateGameRequest gameRequest) throws JsonProcessingException {
-       return ResponseEntity.ok(gameService.createGame(gameRequest));
+    @ResponseStatus(HttpStatus.OK)
+    public GameResponse createNewGame(@RequestBody CreateGameRequest gameRequest) throws JsonProcessingException {
+       return gameService.createGame(gameRequest);
     }
 
     @Operation(summary = "Get current game")
@@ -51,8 +51,9 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @GetMapping("/game")
-    public ResponseEntity<GameResponse> currentGame(HttpServletRequest request) throws JsonProcessingException {
-        return ResponseEntity.ok(gameService.getCurrentGame(request));
+    @ResponseStatus(HttpStatus.OK)
+    public GameResponse currentGame(HttpServletRequest request) throws JsonProcessingException {
+        return gameService.getCurrentGame(request);
     }
 
     @Operation(summary = "Perform Move")
@@ -67,9 +68,10 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/move")
-    public ResponseEntity<GameInfoResponse> move(HttpServletRequest request,
+    @ResponseStatus(HttpStatus.OK)
+    public GameInfoResponse move(HttpServletRequest request,
                                                  @RequestBody MoveRequest moveRequest) throws JsonProcessingException {
-        return ResponseEntity.ok(gameService.move(request, moveRequest));
+        return gameService.move(request, moveRequest);
     }
 
     @Operation(summary = "Give Up")
@@ -84,8 +86,9 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/give-up")
-    public ResponseEntity<GameInfoResponse> giveUp(HttpServletRequest request) throws JsonProcessingException {
-        return  ResponseEntity.ok(gameService.giveUp(request));
+    @ResponseStatus(HttpStatus.OK)
+    public GameInfoResponse giveUp(HttpServletRequest request) throws JsonProcessingException {
+        return gameService.giveUp(request);
     }
 
     @Operation(summary = "Offer Draw")
@@ -99,10 +102,9 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/draw")
-    public ResponseEntity offerDraw(HttpServletRequest request) throws JsonProcessingException {
+    @ResponseStatus(HttpStatus.OK)
+    public void offerDraw(HttpServletRequest request) throws JsonProcessingException {
         gameService.offerDraw(request);
-
-        return new ResponseEntity(HttpStatus.OK);
     }
 
     @Operation(summary = "Draw answer")
@@ -116,9 +118,8 @@ public class GameController {
                     content = @Content (mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorNotFound.class))) })
     @PostMapping("/game/draw/{answer}")
-    public ResponseEntity draw(HttpServletRequest request, @PathVariable boolean answer) throws JsonProcessingException {
+    @ResponseStatus(HttpStatus.OK)
+    public void draw(HttpServletRequest request, @PathVariable boolean answer) throws JsonProcessingException {
         gameService.draw(request, answer);
-
-        return new ResponseEntity(HttpStatus.OK);
     }
 }

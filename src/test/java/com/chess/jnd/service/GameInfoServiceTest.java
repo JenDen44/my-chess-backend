@@ -12,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
 
@@ -21,11 +21,10 @@ import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 class GameInfoServiceTest {
 
-    @Mock
-    GameInfoRepository gameInfoRepo;
-
     @InjectMocks
     GameInfoService gameInfoService;
+    @Mock
+    GameInfoRepository gameInfoRepo;
 
     @DisplayName("Test Get Game Info By ID")
     @Test
@@ -36,7 +35,7 @@ class GameInfoServiceTest {
 
         GameInfo gameInfoFromService = gameInfoService.get(1);
 
-        then(gameInfoRepo).should().findById(anyInt());
+        verify(gameInfoRepo).findById(anyInt());
         assertThat(gameInfoFromService).isNotNull();
     }
 
@@ -49,7 +48,7 @@ class GameInfoServiceTest {
 
         GameInfo gameInfoFromService = gameInfoService.save(new GameInfo());
 
-        then(gameInfoRepo).should().save(any(GameInfo.class));
+        verify(gameInfoRepo).save(any(GameInfo.class));
         assertThat(gameInfoFromService).isNotNull();
     }
 
@@ -57,9 +56,12 @@ class GameInfoServiceTest {
     @Test
     void deleteGameInfo() {
         GameInfo gameInfo = new GameInfo();
-        gameInfo.setId(1);
+
+        given(gameInfoRepo.findById(anyInt())).willReturn(Optional.of(gameInfo));
 
         gameInfoService.deleteGameInfo(1);
-        then(gameInfoRepo).should().deleteById(anyInt());
+
+        verify(gameInfoRepo).findById(anyInt());
+        verify(gameInfoRepo).deleteById(anyInt());
     }
 }

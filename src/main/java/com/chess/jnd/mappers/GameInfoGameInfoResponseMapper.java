@@ -1,4 +1,4 @@
-package com.chess.jnd.utils;
+package com.chess.jnd.mappers;
 
 import com.chess.jnd.entity.GameInfo;
 import com.chess.jnd.entity.GameInfoResponse;

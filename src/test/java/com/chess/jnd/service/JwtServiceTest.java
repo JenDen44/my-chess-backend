@@ -1,85 +1,90 @@
 package com.chess.jnd.service;
 
+import com.chess.jnd.ParameterFabric;
 import com.chess.jnd.entity.Color;
-import com.chess.jnd.entity.GameRedis;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import jakarta.servlet.http.HttpServletRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.verify;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource
 class JwtServiceTest {
 
-    @Mock
+    @InjectMocks
     JwtService jwtService;
 
     @Mock
-    HttpServletRequest request;
+    ObjectMapper mapper;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(jwtService, "secretKey", "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
+    }
 
     @Test
     void generateCustomToken() throws JsonProcessingException {
-        GameRedis gameRedis = new GameRedis();
-        gameRedis.setId(1);
-        gameRedis.setTokenForWhitePlayer("hdhdhsdjadja");
+        String color = "black";
 
-        given(jwtService.generateCustomToken(anyInt(), any(Color.class))).willReturn(gameRedis.getTokenForWhitePlayer());
+        given(mapper.writeValueAsString(any(Color.class))).willReturn(color);
 
-        String token = jwtService.generateCustomToken(1, Color.WHITE);
+        String token = jwtService.generateCustomToken(1, Color.BLACK);
 
-        then(jwtService).should().generateCustomToken(anyInt(), any(Color.class));
+        verify(mapper).writeValueAsString(any(Color.class));
+
         assertThat(token).isNotNull();
     }
 
     @Test
     void getGameId() throws JsonProcessingException {
-        GameRedis gameRedis = new GameRedis();
-        gameRedis.setId(1);
-        gameRedis.setTokenForWhitePlayer("hdhdhsdjadja");
+        String id  = "1";
+        Integer returnedId = 1;
 
-        given(jwtService.getGameId(any(String.class))).willReturn(1);
+        given(mapper.readValue(id, Integer.class)).willReturn(returnedId);
 
-        Integer id = jwtService.getGameId(gameRedis.getTokenForWhitePlayer());
+        Integer idFromService = jwtService.getGameId(ParameterFabric.getBlackToken());
 
-        then(jwtService).should().getGameId(any(String.class));
-        assertThat(id).isNotNull();
+        verify(mapper).readValue(id, Integer.class);
+
+        assertThat(idFromService).isNotNull();
+        assertEquals(idFromService, returnedId);
     }
 
     @Test
     void getColor() throws JsonProcessingException {
-        GameRedis gameRedis = new GameRedis();
-        gameRedis.setTokenForWhitePlayer("hdhdhsdjadja");
-        gameRedis.setActive(Color.BLACK);
+        String color  = "white";
+        Color returnedColor = Color.WHITE;
 
-        given(jwtService.getColor(any(String.class))).willReturn(gameRedis.getActive());
+        given(mapper.readValue(color, Color.class)).willReturn(returnedColor);
 
-        Color color = jwtService.getColor(gameRedis.getTokenForWhitePlayer());
+        Color colorFromService = jwtService.getColor(ParameterFabric.getWhiteToken());
 
-        then(jwtService).should().getColor(any(String.class));
-        assertThat(color).isNotNull();
-        assertEquals(color, gameRedis.getActive());
+        verify(mapper).readValue(color, Color.class);
+
+        assertThat(colorFromService).isNotNull();
+        assertEquals(colorFromService, returnedColor);
     }
 
     @Test
     void resolveToken() {
-        GameRedis gameRedis = new GameRedis();
-        gameRedis.setTokenForWhitePlayer("hdhdhsdjadja");
-        gameRedis.setActive(Color.BLACK);
+        MockHttpServletRequest mockRequest = ParameterFabric.createMockRequest();
 
-        given(jwtService.resolveToken(any(HttpServletRequest.class))).willReturn(gameRedis.getTokenForWhitePlayer());
+        String token = jwtService.resolveToken(mockRequest);
 
-        String token = jwtService.resolveToken(request);
-
-        then(jwtService).should().resolveToken(any(HttpServletRequest.class));
         assertThat(token).isNotNull();
-        assertEquals(token, gameRedis.getTokenForWhitePlayer());
+        assertEquals(token, ParameterFabric.getWhiteToken());
     }
 }
