@@ -1,5 +1,6 @@
 package com.chess.jnd.service;
 
+import com.chess.jnd.client.ChatClient;
 import com.chess.jnd.entity.*;
 import com.chess.jnd.entity.figures.Figure;
 import com.chess.jnd.entity.figures.ShortFigureName;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -33,12 +35,13 @@ public class GameCommonService {
     private final GameNotificationService notificationService;
     private final GameInfoGameInfoResponseMapper gameInfoMapper;
     private TimerTask task = null;
+    private final ChatClient chatClient;
 
     @Value("${time.for.move}")
     public Integer timeForeMove;
 
     @Autowired
-    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper) {
+    public GameCommonService(GameRedisService gameRedisService, GameService gameService, GameInfoService gameInfoService, JwtService jwtService, GameToRedisGameMapperImpl gameMapper, ObjectMapper mapper, GameNotificationService notificationService, GameInfoGameInfoResponseMapper gameInfoMapper, ChatClient chatClient) {
         this.gameRedisService = gameRedisService;
         this.gameService = gameService;
         this.gameInfoService = gameInfoService;
@@ -47,6 +50,7 @@ public class GameCommonService {
         this.mapper = mapper;
         this.notificationService = notificationService;
         this.gameInfoMapper = gameInfoMapper;
+        this.chatClient = chatClient;
     }
 
     public GameRedis saveGame(GameRedis game) {
@@ -110,6 +114,12 @@ public class GameCommonService {
         Game savedGameToDB = gameService.save(game);
         String whiteToken = jwtService.generateCustomToken(savedGameToDB.getId(), Color.WHITE);
         String blackToken = jwtService.generateCustomToken(savedGameToDB.getId(), Color.BLACK);
+
+        ChatResponse chatResponse = chatClient.createChat(List.of(whiteToken, blackToken));
+
+        if (chatResponse == null) {
+            throw new GameWrongDataException("Chat was not created");
+        }
 
         savedGameToDB.setTokenForWhitePlayer(whiteToken);
         savedGameToDB.setTokenForBlackPlayer(blackToken);
