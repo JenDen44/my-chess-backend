@@ -280,9 +280,15 @@ public class GameCommonService {
                 .build();
     }
 
-    public void changeGameStatusAndNotifyPlayers(GameInfo gameInfo, GameResult result, GameStatus status, String... tokens) {
+    public void changeGameStatusAndNotifyPlayers(GameInfo gameInfo, GameResult result, GameStatus status, String... tokens) throws JsonProcessingException {
         gameInfo.setDetail(result);
         gameInfo.setStatus(status);
+
+        if (status.equals(GameStatus.FINISHED)) {
+           GameRedis curGame = findGameByToken(tokens[0]);
+           curGame.setFinishDate(LocalDateTime.now());
+           saveGame(curGame);
+        }
 
         gameInfoService.save(gameInfo);
 

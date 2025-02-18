@@ -34,6 +34,8 @@ public class GameRedis {
 
     private Integer timeForMove;
 
+    private LocalDateTime finishDate;
+
     @Override
     public String toString() {
         return "GameRedis{" +
