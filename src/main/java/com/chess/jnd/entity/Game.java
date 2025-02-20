@@ -25,7 +25,7 @@ public class Game {
     @Column(name = "token_for_black_player")
     private String tokenForBlackPlayer;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "id")
     @MapsId
     private GameInfo gameInfo;
@@ -42,6 +42,8 @@ public class Game {
     private LocalDateTime date;
 
     private Integer timeForMove;
+
+    private LocalDateTime finishDate;
 
     public Game(String board) {
         this.gameInfo = new GameInfo(GameStatus.IN_PROCESS);
