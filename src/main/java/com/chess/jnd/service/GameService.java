@@ -43,7 +43,7 @@ public class GameService {
     }
 
     public List<Game> getAllFinishedGame() {
-        return gameRepository.findAllFinishedGame("2");
+        return gameRepository.findAllFinishedGame();
     }
 
     public List<String> removeAllFinishedGame() {

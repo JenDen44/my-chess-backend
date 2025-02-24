@@ -23,11 +23,9 @@ public class FinishGameCleaner {
 
     @Scheduled(fixedRateString = "${fixedRate.in.milliseconds}")
     public void deleteFinishedGame() {
-        System.out.println("deleteFinishedGame started");
         List<String> tokens = gameService.removeAllFinishedGame();
 
         if (tokens != null && !tokens.isEmpty()) {
-            System.out.println("tokens are not empty throw even to remove chats");
             publisher.publishEvent(new RemoveChatEvent(tokens));
         }
     }

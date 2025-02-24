@@ -22,8 +22,10 @@ public class RemoveChatListener {
     public void listen(RemoveChatEvent event){
         log.debug("Call to chat service to remove chats by tokens");
 
-        System.out.println("Call to chat service to remove chats by tokens");
-
-        chatClient.deleteChat(event.getTokens());
+        if (chatClient.deleteChat(event.getTokens())) {
+            log.debug("Successfully removed chats by tokens");
+        } else {
+            log.error("Failed to remove chats by tokens");
+        };
     }
 }

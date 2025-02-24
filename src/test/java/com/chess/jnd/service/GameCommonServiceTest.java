@@ -407,7 +407,7 @@ class GameCommonServiceTest {
 
     @DisplayName("Test Change Game Status and Notify Players")
     @Test
-    void changeGameStatusAndNotifyPlayers() {
+    void changeGameStatusAndNotifyPlayers() throws JsonProcessingException {
         GameRedis gameRedis = ParameterFabric.createRedisGame();
 
         given(gameInfoService.save(any(GameInfo.class))).willReturn(gameRedis.getGameInfo());
