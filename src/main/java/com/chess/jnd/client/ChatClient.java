@@ -37,11 +37,9 @@ public class ChatClient {
         return restTemplate.postForObject(chatServiceUrl, request, ChatResponse.class);
     }
 
-    public void deleteChat(List<String> tokens) {
+    public boolean deleteChat(List<String> tokens) {
         ChatRequest request = new ChatRequest(tokens);
-        System.out.println("deleteChat is triggered");
         HttpEntity<ChatRequest> requestEntity = new HttpEntity<>(request);
-        System.out.println("body " + tokens);
 
         ResponseEntity<Void> response = restTemplate.exchange(
                 chatServiceUrl,
@@ -52,8 +50,10 @@ public class ChatClient {
 
         if (response.getStatusCode().is2xxSuccessful()) {
             log.debug("Chats were successfully deleted for related tokens");
+            return true;
         } else {
             log.error("Failed to delete chats for related tokens");
+            return false;
         }
     }
 }

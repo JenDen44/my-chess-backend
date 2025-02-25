@@ -12,4 +12,8 @@ public class ChatResponse {
     private Integer id;
 
     List<String> tokens;
+
+    public ChatResponse(List<String> tokens) {
+        this.tokens = tokens;
+    }
 }
